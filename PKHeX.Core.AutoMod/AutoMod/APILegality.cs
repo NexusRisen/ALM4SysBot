@@ -1726,7 +1726,7 @@ public static class APILegality
             _ => GameUtil.GetMetLocationVersionGroup(version),
         };
 
-        var res = group.GetVersionsWithinRange(versionlist.ToArray());
+        var res = versionlist.Where(v => group.Contains(v)).ToArray();
         return res.Length > 0 ? res : [version];
     }
 
