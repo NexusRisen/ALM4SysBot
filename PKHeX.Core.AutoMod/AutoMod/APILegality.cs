@@ -299,7 +299,7 @@ public static class APILegality
         if (batchEdit && set is RegenTemplate { Regen.VersionFilters: { Count: not 0 } x } && TryGetSingleVersion(x, out var single))
             return single;
 
-        var versionlist = GameUtil.GetVersionsWithinRange(template, template.Format);
+        var versionlist = GameUtil.GetVersionsWithinRange(template, template.Generation);
         var gamelist = !nativeOnly ? [.. versionlist.OrderByDescending(c => c.GetGeneration())] : GetPairedVersions(destVer, versionlist);
         if (PrioritizeGame)
             gamelist = PrioritizeGameVersion == GameVersion.Any ? PrioritizeVersion(gamelist, destVer.GetIsland()) : PrioritizeVersion(gamelist, PrioritizeGameVersion);
@@ -807,7 +807,7 @@ public static class APILegality
             pk.Language = tr.Language;
             pk.SetTrainerData(tr);
         }
-        else
+        if (pk.Species is not (ushort)Species.Manaphy)
             pk.EggLocation = Locations.TradedEggLocation(enc.Generation, enc.Version);
     }
 
