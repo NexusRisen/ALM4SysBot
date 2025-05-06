@@ -103,7 +103,10 @@ public static class RegenUtil
         var index = line.IndexOf(Splitter);
         if (index < 0)
             return false;
-
+        line = line[(index+2)..]; // remove "Unknown Token: " from invalid lines to process
+        index = line.IndexOf(Splitter);
+        if (index < 0)
+            return false;
         var key = line[..index];
         var value = line[(index + 1)..].Trim();
         result = (key.ToString(), value.ToString());
@@ -161,7 +164,7 @@ public static class RegenUtil
     /// <param name="ver"></param>
     public static ITrainerInfo MutateLanguage(this ITrainerInfo tr, LanguageID? lang, GameVersion ver)
     {
-        if (lang is LanguageID.UNUSED_6 or LanguageID.Hacked or null)
+        if (lang is LanguageID.UNUSED_6 or LanguageID.None or null)
             return tr;
 
         if (tr is PokeTrainerDetails p)

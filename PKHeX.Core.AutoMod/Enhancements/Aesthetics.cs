@@ -1073,7 +1073,7 @@ public static class Aesthetics
             return null;
         }
 
-        return lang is LanguageID.Hacked or LanguageID.UNUSED_6 ? LanguageID.English : lang;
+        return lang is LanguageID.None or LanguageID.UNUSED_6 ? LanguageID.English : lang;
     }
 
     private static bool IsDisallowed(this RibbonIndex ribbon) => ribbon switch

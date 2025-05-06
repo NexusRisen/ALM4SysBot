@@ -86,6 +86,10 @@ public class PluginSettings
     [Description("Force Showdown sets with level 50 to level 100")]
     public bool ForceLevel100for50 { get; set; } = true;
 
+    [Category(Customization)]
+    [Description("Export format for ALM Showdown Template")]
+    public BattleTemplateDisplayStyle ExportFormat { get; set; } = BattleTemplateDisplayStyle.Showdown;
+
     // Legality
     [Category(Legality)]
     [Description("Global timeout per Pokémon being generated (in seconds)")]

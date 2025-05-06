@@ -255,7 +255,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
             var data = Remote.Bot.ReadSlot(0, 0);
             var pkm = SAV.SAV.GetDecryptedPKM(data.ToArray());
             bool valid = pkm.Species <= pkm.MaxSpeciesID && pkm.ChecksumValid &&
-                         pkm is { Species: 0, EncryptionConstant: 0 } or { Species: not 0, Language: not (int)LanguageID.Hacked and not (int)LanguageID.UNUSED_6 };
+                         pkm is { Species: 0, EncryptionConstant: 0 } or { Species: not 0, Language: not (int)LanguageID.None and not (int)LanguageID.UNUSED_6 };
             if (valid)
                 return (LiveHeXValidation.None, "", version);
         }
@@ -315,7 +315,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         PKM? pkm = SAV.SAV.GetDecryptedPKM(data.ToArray());
         bool valid = pkm is not null && pkm.Species <= pkm.MaxSpeciesID && pkm.ChecksumValid &&
                      pkm is { Species: 0, EncryptionConstant: 0 }
-                         or { Species: not 0, Language: not (int)LanguageID.Hacked and not (int)LanguageID.UNUSED_6 };
+                         or { Species: not 0, Language: not (int)LanguageID.None and not (int)LanguageID.UNUSED_6 };
         return !_settings.EnableDevMode && !valid && InjectionBase.CheckRAMShift(Remote.Bot, out string err) ? (LiveHeXValidation.RAMShift, err, lv) : !valid ? (LiveHeXValidation.GameVersion,"Invalid data found.",LiveHeXVersion.Unknown): (LiveHeXValidation.None, "", lv);
     }
 

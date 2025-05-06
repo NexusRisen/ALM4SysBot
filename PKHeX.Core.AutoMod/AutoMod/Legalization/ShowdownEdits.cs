@@ -151,7 +151,7 @@ public static class ShowdownEdits
             pk.EXP = Experience.GetEXP((byte)(enc.LevelMin + 1), PersonalTable.HGSS[enc.Species].EXPGrowth) - 1;
 
         var finallang = lang ?? currentlang;
-        if (finallang == LanguageID.Hacked)
+        if (finallang == LanguageID.None)
             finallang = LanguageID.English;
 
         pk.Language = (int)finallang;

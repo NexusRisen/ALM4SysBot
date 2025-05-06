@@ -15,17 +15,17 @@ public record ShowdownTeamSet(string TeamName, IReadOnlyList<ShowdownSet> Team, 
 
     public string Summary => $"{Format}: {TeamName}";
 
-    public string Export(string language = GameLanguage.DefaultLanguage)
+    public string Export(BattleTemplateExportSettings settings)
     {
         var sb = new StringBuilder();
-        return Export(sb, language);
+        return Export(sb, settings);
     }
 
-    public string Export(StringBuilder sb, string language = GameLanguage.DefaultLanguage)
+    public string Export(StringBuilder sb, BattleTemplateExportSettings settings)
     {
         sb.AppendLine(GetHeading(Format, TeamName));
         foreach (var set in Team)
-            sb.AppendLine(set.LocalizedText(language));
+            sb.AppendLine(set.GetText(settings));
         return sb.ToString();
     }
 

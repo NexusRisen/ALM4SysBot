@@ -48,7 +48,6 @@ public class PasteImporter : AutoModPlugin
             if (WinFormsUtil.Prompt(MessageBoxButtons.OKCancel, "Generate 6 Random Pokemon?") != DialogResult.OK)
                 return;
             APILegality.RandTypes = _settings.RandomTypes;
-            APILegality.RandTypes = _settings.RandomTypes;
             result = sav.GetSixRandomMons();
         }
         else
@@ -96,6 +95,10 @@ public class PasteImporter : AutoModPlugin
             var txt = Clipboard.GetText();
             if (ShowdownUtil.IsTextShowdownData(txt))
                 return txt;
+            if (ShowdownTeam.IsURL(txt, out var url) && ShowdownTeam.TryGetSets(url, out var content))
+                return content;
+            else if (PokepasteTeam.IsURL(txt, out url) && PokepasteTeam.TryGetSets(url, out content))
+                return content;
         }
         if (!WinFormsUtil.OpenSAVPKMDialog(["txt"], out var path))
         {

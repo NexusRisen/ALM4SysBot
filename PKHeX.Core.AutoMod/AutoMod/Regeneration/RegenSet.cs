@@ -74,7 +74,7 @@ public sealed class RegenSet
         for (int i = 0; i < lines.Count;)
         {
             var line = lines[i];
-            var sanitized = line.Replace(">=", "≥").Replace("<=", "≤");
+            var sanitized = line.Replace(">=", "≥").Replace("<=", "≤").Replace("Unknown Token: ","");
             if (StringInstruction.TryParseInstruction(sanitized, out var mod))
             {
                 mods.Add(mod);

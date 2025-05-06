@@ -105,7 +105,7 @@ public static class BattleTemplateLegality
             return string.Format(HIDDEN_ABILITY_UNAVAILABLE, species_name);
 
         // Home Checks
-        if (!APILegality.AllowHOMETransferGeneration)
+        if (!APILegality.AllowHOME)
         {
             if (encounters.All(z => HomeTrackerUtil.IsRequired(z, failed)))
                 return string.Format(HOME_TRANSFER_ONLY, species_name);

@@ -367,7 +367,7 @@ public static class SimpleEdits
     public static void SetHTLanguage(this PKM pk, byte prefer)
     {
         var preferID = (LanguageID)prefer;
-        if (preferID is LanguageID.Hacked or LanguageID.UNUSED_6)
+        if (preferID is LanguageID.None or LanguageID.UNUSED_6)
             prefer = 2; // prefer english
 
         if (pk is IHandlerLanguage h)
