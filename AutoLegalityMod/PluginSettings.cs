@@ -48,6 +48,10 @@ public class PluginSettings
     public string LatestIP { get; set; } = "192.168.1.65";
 
     [Category(Connection)]
+    [Description("Stores the last port used by LiveHeX.")]
+    public string LatestPort { get; set; } = "6000";
+
+    [Category(Connection)]
     [Description("Allows LiveHeX to use USB-Botbase instead of sys-botbase.")]
     public bool USBBotBasePreferred { get; set; } = false;
 

@@ -606,7 +606,7 @@ public static class APILegality
         pk.SetMovesEVs(set, enc);
         pk.SetCorrectMetLevel(enc);
         pk.SetGVs();
-        pk.SetHyperTrainingFlags(set, enc);
+        pk.SetHyperTrainingFlags(set, enc, criteria);
         pk.SetEncryptionConstant(enc);
         pk.SetShinyBoolean(set.Shiny, enc, regen.Extra.ShinyType);
         pk.FixGender(set);
@@ -709,7 +709,7 @@ public static class APILegality
     /// <param name="pk">passed pkm object</param>
     /// <param name="set">showdown set to base hyper training on</param>
     /// <param name="enc"></param>
-    private static void SetHyperTrainingFlags(this PKM pk, IBattleTemplate set, IEncounterTemplate enc)
+    private static void SetHyperTrainingFlags(this PKM pk, IBattleTemplate set, IEncounterTemplate enc, EncounterCriteria criteria)
     {
         if (pk is not IHyperTrain t || pk.Species == (ushort)Species.Stakataka)
             return;
@@ -721,7 +721,7 @@ public static class APILegality
         if (t.GetHyperTrainMinLevel(history, pk.Context) > pk.CurrentLevel)
             return;
 
-        t.HyperTrain(pk, set.IVs);
+        t.HyperTrain(pk, set.IVs, criteria);
 
         // Handle special cases here for ultrabeasts
         switch (pk.Species)

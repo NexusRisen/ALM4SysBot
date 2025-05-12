@@ -42,7 +42,18 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         this.TranslateInterface(WinFormsTranslator.CurrentLanguage);
 
         TB_IP.Text = _settings.LatestIP;
-        var default_port = RamOffsets.IsSwitchTitle(sav.SAV) ? 6000 : 8000; // default port for loaded save
+
+        // Default Wi-Fi ports for loaded save, 6000 for Switch, 8000 for 3DS
+        var default_port = RamOffsets.IsSwitchTitle(sav.SAV) ? 6000 : 8000;
+
+        if (_settings.USBBotBasePreferred)
+        {
+            // Only use the saved port if using USB-Botbase
+            if (int.TryParse(_settings.LatestPort, out int port))
+                default_port = port;
+            // Allow editing of the port field.
+            TB_Port.ReadOnly = false;
+        }
         TB_Port.Text = default_port.ToString();
         SetInjectionTypeView();
 
@@ -355,6 +366,9 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
 
         x.Slots.Publisher.Subscribers.Remove(this);
         _settings.LatestIP = TB_IP.Text;
+        // Only save the port if using USB-Botbase
+        if (_settings.USBBotBasePreferred)
+            _settings.LatestPort = TB_Port.Text;
         _settings.Save();
     }
 
