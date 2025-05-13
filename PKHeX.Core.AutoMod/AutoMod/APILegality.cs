@@ -471,7 +471,7 @@ public static class APILegality
             switch (enc.Generation)
             {
                 case 6 when set.Form != (enc is EncounterStatic6 ? enc.Form : 0):
-                case >= 7 when set.Form != (enc is EncounterInvalid or EncounterEgg ? 0 : enc.Form):
+                case >= 7 when set.Form != (enc is EncounterInvalid or IEncounterEgg ? 0 : enc.Form):
                     return false;
             }
         }
@@ -554,7 +554,7 @@ public static class APILegality
         IOverworldCorrelation8 o when o.GetRequirement(pk) == OverworldCorrelation8Requirement.MustHave => true,
         IStaticCorrelation8b s when s.GetRequirement(pk) == StaticCorrelation8bRequirement.MustHave => true,
         EncounterSlot3 when pk.Species == (ushort)Species.Unown => true,
-        EncounterEgg when GameVersion.BDSP.Contains(enc.Version) => true,
+        EncounterEgg8b => true,
         EncounterGift3 when pk.Species == (ushort)Species.Jirachi => true, //PKHeX handles this now for both Wishmkr and CHANNEL
         _ => false,
     };
@@ -874,7 +874,7 @@ public static class APILegality
             case EncounterShadow3XD:
             case EncounterShadow3Colo:
             case PCD:
-            case EncounterEgg:
+            case IEncounterEgg:
                 return;
             // EncounterTrade4 doesn't have fixed PIDs, so don't early return
             case EncounterTrade3:
@@ -961,7 +961,7 @@ public static class APILegality
             if (!SimpleEdits.TryApplyHardcodedSeedWild8(pk8, enc, cloned, shiny))
                 FindWildPIDIV8(pk8, shiny, flawless);
         }
-        else if (enc is EncounterEgg && GameVersion.BDSP.Contains(enc.Version))
+        else if (enc is EncounterEgg8b)
         {
             pk.SetIVs(set.IVs);
             Shiny shiny = set is RegenTemplate r ? r.Regen.Extra.ShinyType : set.Shiny ? Shiny.Always : Shiny.Never;
@@ -1576,7 +1576,7 @@ public static class APILegality
     /// </summary>
     public static EncounterCriteria SetSpecialCriteria(EncounterCriteria criteria, IEncounterTemplate enc, IBattleTemplate set)
     {
-        if (enc is EncounterEgg && enc.Version is not (GameVersion.BD or GameVersion.SP))
+        if (enc is IEncounterEgg && enc is not EncounterEgg8b)
             return criteria;
         if (enc is EncounterStatic8U)
             criteria = criteria with { Shiny = Shiny.Never };

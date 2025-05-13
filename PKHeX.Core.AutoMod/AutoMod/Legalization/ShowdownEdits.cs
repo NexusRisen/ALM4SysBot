@@ -57,7 +57,7 @@ public static class ShowdownEdits
         var la2 = new LegalityAnalysis(pk);
         var enc1 = la.EncounterMatch;
         var enc2 = la2.EncounterMatch;
-        if (enc is not EncounterEgg && ((!ReferenceEquals(enc1, enc2) && enc1 is not EncounterEgg) || la2.Results.Any(z => z.Identifier is CheckIdentifier.Nature or CheckIdentifier.Encounter && !z.Valid)))
+        if (enc is not IEncounterEgg && ((!ReferenceEquals(enc1, enc2) && enc1 is not IEncounterEgg) || la2.Results.Any(z => z.Identifier is CheckIdentifier.Nature or CheckIdentifier.Encounter && !z.Valid)))
             pk.Nature = orig;
 
         if (pk.Format >= 8 && pk.StatNature != pk.Nature && pk.StatNature is 0 or Nature.Docile or Nature.Bashful or >= Nature.Quirky) // Only Serious Mint for Neutral Natures

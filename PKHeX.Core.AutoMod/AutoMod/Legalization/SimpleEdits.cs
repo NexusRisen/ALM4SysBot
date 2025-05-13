@@ -285,7 +285,7 @@ public static class SimpleEdits
 
         if (enc is EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND)
             return;
-        if (APILegality.IsPIDIVSet(pk, enc) && !(enc is EncounterEgg && GameVersion.BDSP.Contains(enc.Version)))
+        if (APILegality.IsPIDIVSet(pk, enc) && enc is not EncounterEgg8b)
             return;
 
         var height = 0x12;
