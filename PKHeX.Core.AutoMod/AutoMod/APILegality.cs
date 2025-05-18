@@ -1505,7 +1505,7 @@ public static class APILegality
         if (!wasMetLost)
             return;
 
-        if (new LegalityAnalysis(pk).Info.Moves.All(z => z.Valid))
+        if (new LegalityAnalysis(pk).Info.Moves.All(z => z.Valid) && pk.Species != (ushort)Species.Shedinja)
             return; // Not an issue with moves
 
         pk.MetLevel = current;
