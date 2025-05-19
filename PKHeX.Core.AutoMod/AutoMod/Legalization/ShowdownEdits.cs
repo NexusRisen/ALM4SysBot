@@ -46,7 +46,20 @@ public static class ShowdownEdits
         }
 
         pk.SetNature(val);
+        if (enc.Generation is not (3 or 4))
+        {
+            var orig = pk.Nature;
+            if (orig == val)
+                return;
 
+            var la = new LegalityAnalysis(pk);
+            pk.Nature = val;
+            var la2 = new LegalityAnalysis(pk);
+            var enc1 = la.EncounterMatch;
+            var enc2 = la2.EncounterMatch;
+            if (enc is not IEncounterEgg && ((!ReferenceEquals(enc1, enc2) && enc1 is not IEncounterEgg) || la2.Results.Any(z => z.Identifier is CheckIdentifier.Nature or CheckIdentifier.Encounter && !z.Valid)))
+                pk.Nature = orig;
+        }
         if (pk.Format >= 8 && pk.StatNature != pk.Nature && pk.StatNature is 0 or Nature.Docile or Nature.Bashful or >= Nature.Quirky) // Only Serious Mint for Neutral Natures
             pk.StatNature = Nature.Serious;
     }
