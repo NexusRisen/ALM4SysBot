@@ -74,6 +74,11 @@ public sealed class RegenSet
         for (int i = 0; i < lines.Count;)
         {
             var line = lines[i];
+            if (line.Contains("Unknown Ability")) // remove non-uniform parsing error messages
+            {
+                lines.RemoveAt(i);
+                continue; 
+            }
             var sanitized = line.Replace(">=", "≥").Replace("<=", "≤").Replace("Unknown Token: ","");
             if (StringInstruction.TryParseInstruction(sanitized, out var mod))
             {

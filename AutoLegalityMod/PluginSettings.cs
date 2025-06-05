@@ -116,7 +116,7 @@ public class PluginSettings
 
     [Category(Legality)]
     [Description("Produces an Easter Egg Pokémon if the provided set is illegal.")]
-    public bool EnableEasterEggs { get; set; } = true;
+    public bool EnableEasterEggs { get; set; } = false;
 
     // Living Dex
     [Category(LivingDex)]

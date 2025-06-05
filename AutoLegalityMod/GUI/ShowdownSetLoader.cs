@@ -271,7 +271,7 @@ public static class ShowdownSetLoader
                 settings.PrioritizeEncounters.Add(ep);
         }
 
-        settings.PrioritizeEncounters = settings.PrioritizeEncounters.Distinct().ToList();
+        settings.PrioritizeEncounters = [.. settings.PrioritizeEncounters.Distinct()];
         EncounterMovesetGenerator.PriorityList = settings.PrioritizeEncounters;
     }
 }

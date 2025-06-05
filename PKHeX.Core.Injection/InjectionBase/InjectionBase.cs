@@ -35,8 +35,8 @@ public abstract class InjectionBase(LiveHeXVersion lv, bool useCache) : PointerC
         { ShiningPearl_ID,     [SP_v100, SP_v110, BDSP_v112, BDSP_v113, BDSP_v120, SP_v130] },
         { BrilliantDiamond_ID, [BD_v100, BD_v110, BDSP_v112, BDSP_v113, BDSP_v120, BD_v130] },
         { LegendsArceus_ID, [LA_v100, LA_v101, LA_v102, LA_v111] },
-        { Scarlet_ID, [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301] },
-        { Violet_ID,  [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301] },
+        { Scarlet_ID, [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301,SV_v400] },
+        { Violet_ID,  [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301, SV_v400] },
     };
 
     public virtual Dictionary<string, string> SpecialBlocks { get; } = [];

@@ -66,6 +66,7 @@ public static class ModLogic
         var tr = APILegality.UseTrainerData ? TrainerSettings.GetSavedTrainerData(sav.Version,sav.Generation) : sav;
         var context = sav.Context;
         var generation = sav.Generation;
+        TrackingCount = 0;
         Parallel.For(1, personal.MaxSpeciesID+1, id => //parallel For's end is exclusive
         {
             var s = (ushort)id;
@@ -109,10 +110,11 @@ public static class ModLogic
                 if (!cfg.IncludeForms)
                     break;
             }
+            TrackingCount++;
         });
         return pklist.OrderBy(z => z.Species);
     }
-
+    public static int TrackingCount { get; set; } = 0;
     public static IEnumerable<PKM> GenerateTransferLivingDex(this ITrainerInfo src) => src.GenerateTransferLivingDex(Config);
     public static IEnumerable<PKM> GenerateTransferLivingDex(this ITrainerInfo src, LivingDexConfig cfg)
     {

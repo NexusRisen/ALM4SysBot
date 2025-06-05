@@ -6,6 +6,9 @@ using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 using System.Collections.Generic;
 using Microsoft.VisualBasic.Devices;
+using System.Threading.Tasks;
+using AutoModPlugins.GUI;
+using System.Threading;
 
 namespace AutoModPlugins;
 
@@ -26,7 +29,7 @@ public class LivingDex : AutoModPlugin
         modmenu.DropDownItems.Add(ctrl);
     }
 
-    private void GenLivingDex(object? sender, EventArgs e)
+    private async void GenLivingDex(object? sender, EventArgs e)
     {
         var prompt = WinFormsUtil.Prompt(MessageBoxButtons.YesNo, "Generate a Living Dex?");
         if (prompt != DialogResult.Yes)
@@ -35,8 +38,18 @@ public class LivingDex : AutoModPlugin
         if (new Keyboard().AltKeyDown)
             egg = true;
         var sav = SaveFileEditor.SAV;
-        var dex = egg?sav.GenerateLivingEggDex(sav.Personal):sav.GenerateLivingDex(sav.Personal);
+        var t = new ALMStatusBar("Living Dex", sav.MaxSpeciesID)
+        {
+            Count = ModLogic.TrackingCount
+        };
+        t.Show();
+
+        // After showing the form, start a polling loop
+        _ = Task.Run(()=>PollingLoop(t)); 
+
+        var dex = await Task.Run(() => egg ? sav.GenerateLivingEggDex(sav.Personal) : sav.GenerateLivingDex(sav.Personal));
         List<PKM> extra = [];
+        t.Close();
         int generated = IngestToBoxes(sav, dex, extra);
         System.Diagnostics.Debug.WriteLine($"Generated Living Dex with {generated} entries.");
         SaveFileEditor.ReloadSlots();
@@ -54,7 +67,18 @@ public class LivingDex : AutoModPlugin
         foreach (var f in extra)
             File.WriteAllBytes($"{ofd.SelectedPath}/{f.FileName}", f.DecryptedPartyData);
     }
-
+    private static void PollingLoop(ALMStatusBar t)
+    {
+        int lastCount = -1;
+        while (!t.IsDisposed)
+        {
+            if (ModLogic.TrackingCount != lastCount)
+            {
+                lastCount = ModLogic.TrackingCount;
+                t.Invoke(() => t.Count = lastCount);
+            }
+        }
+    }
     private static int IngestToBoxes(SaveFile sav, IEnumerable<PKM> list, IList<PKM> extra, int slot = 0)
     {
         int generated = 0;

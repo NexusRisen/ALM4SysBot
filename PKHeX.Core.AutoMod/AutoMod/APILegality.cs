@@ -94,6 +94,8 @@ public static class APILegality
             encounters = encounters.Where(enc => enc is (IGenerateSeed32 or IGenerateSeed64)); // Only allow seed generation for seed encounters
         if (ogenc is not null)
             encounters = encounters.OrderByDescending(e => e == ogenc);
+        if (set.Shiny)
+            encounters = encounters.OrderByDescending(e => e.Shiny == Shiny.Always);
         PKM? last = null;
         var timer = Stopwatch.StartNew();
         foreach (var enc in encounters)
@@ -305,16 +307,16 @@ public static class APILegality
             gamelist = PrioritizeGameVersion == GameVersion.Any ? PrioritizeVersion(gamelist, destVer.GetIsland()) : PrioritizeVersion(gamelist, PrioritizeGameVersion);
 
         if (template.AbilityNumber == 4 && destVer.GetGeneration() < 8)
-            gamelist = gamelist.Where(z => z.GetGeneration() is not 3 and not 4).ToArray();
+            gamelist = [.. gamelist.Where(z => z.GetGeneration() is not 3 and not 4)];
         if (gamelist.Contains(GameVersion.HGSS))
         {
-            gamelist = gamelist.Where(z => z != GameVersion.HGSS).ToArray();
+            gamelist = [.. gamelist.Where(z => z != GameVersion.HGSS)];
             gamelist = [.. gamelist, GameVersion.HG];
             gamelist = [.. gamelist, GameVersion.SS];
         }
         if (gamelist.Contains(GameVersion.FRLG))
         {
-            gamelist = gamelist.Where(z => z != GameVersion.FRLG).ToArray();
+            gamelist = [.. gamelist.Where(z => z != GameVersion.FRLG)];
             gamelist = [.. gamelist, GameVersion.FR];
             gamelist = [.. gamelist, GameVersion.LG];
         }
@@ -350,17 +352,17 @@ public static class APILegality
             }
             else
             {
-                result = GameUtil.GameVersions.Where(z => value.Contains(z)).ToArray();
+                result = [.. GameUtil.GameVersions.Where(z => value.Contains(z))];
             }
 
             gamelist = filter.Comparer switch
             {
                 InstructionComparer.IsEqual => result,
-                InstructionComparer.IsNotEqual  => GameUtil.GameVersions.Where(z => !result.Contains(z)).ToArray(),
-                InstructionComparer.IsGreaterThan => GameUtil.GameVersions.Where(z => result.Any(g => z > g)).ToArray(),
-                InstructionComparer.IsGreaterThanOrEqual => GameUtil.GameVersions.Where(z => result.Any(g => z >= g)).ToArray(),
-                InstructionComparer.IsLessThan => GameUtil.GameVersions.Where(z => result.Any(g => z < g)).ToArray(),
-                InstructionComparer.IsLessThanOrEqual  => GameUtil.GameVersions.Where(z => result.Any(g => z <= g)).ToArray(),
+                InstructionComparer.IsNotEqual  => [.. GameUtil.GameVersions.Where(z => !result.Contains(z))],
+                InstructionComparer.IsGreaterThan => [.. GameUtil.GameVersions.Where(z => result.Any(g => z > g))],
+                InstructionComparer.IsGreaterThanOrEqual => [.. GameUtil.GameVersions.Where(z => result.Any(g => z >= g))],
+                InstructionComparer.IsLessThan => [.. GameUtil.GameVersions.Where(z => result.Any(g => z < g))],
+                InstructionComparer.IsLessThanOrEqual  => [.. GameUtil.GameVersions.Where(z => result.Any(g => z <= g))],
                 _ => result,
             };
             return gamelist.Length != 0;
@@ -592,7 +594,7 @@ public static class APILegality
         var language = regen.Extra.Language;
         var pidiv = MethodFinder.Analyze(pk);
 
-        pk.SetPINGA(set, pidiv.Type, set.HiddenPowerType, enc, criteria);
+        pk.SetPINGA(set, pidiv.Type, set.HiddenPowerType, enc);
         pk.SetSpeciesLevel(set, set.Form, enc, language);
         pk.SetDateLocks(enc);
         pk.SetHeldItem(set);
@@ -814,7 +816,7 @@ public static class APILegality
     /// <summary>
     /// Set IV Values for the Pokémon
     /// </summary>
-    private static void SetPINGA(this PKM pk, IBattleTemplate set, PIDType method, int hpType, IEncounterTemplate enc, EncounterCriteria criteria)
+    private static void SetPINGA(this PKM pk, IBattleTemplate set, PIDType method, int hpType, IEncounterTemplate enc)
     {
         if (enc is not EncounterStatic4Pokewalker && enc.Generation > 2)
             ShowdownEdits.SetNature(pk, set, enc);
@@ -1348,18 +1350,16 @@ public static class APILegality
         var count = 0;
         var compromise = false;
         var gr = pk.PersonalInfo.Gender;
-        uint seed = Util.Rand32();
-        if (IsMatchFromPKHeX(pk, request, hiddenPower, shiny, gr, enc, seed, method))
+        if (IsMatchFromPKHeX(pk, request, hiddenPower, gr, method))
             return;
         do
         {
             if (count >= 2_500_000 && enc.Species != (ushort)Species.Unown)
                 compromise = true;
 
-            seed = Util.Rand32();
-            if (PokeWalkerSeedFail(seed, method, pk, request))
+            if (PokeWalkerSeedFail(Util.Rand32(), method, pk, request))
                 continue;
-            PIDGenerator.SetValuesFromSeed(pk, method, seed);
+            PIDGenerator.SetValuesFromSeed(pk, method, Util.Rand32());
             if (pk.AbilityNumber != request.AbilityNumber )
                 continue;
             if (!compromise && pk.Nature != request.Nature)
@@ -1388,14 +1388,14 @@ public static class APILegality
                 if (la.Info.PIDIV.Type is not PIDType.CXD and not PIDType.CXD_ColoStarter || !la.Info.PIDIVMatches || !pk.IsValidGenderPID(enc))
                     continue;
             }
-            if (pk.TID16 == 06930 && !MystryMew.IsValidSeed(seed))
+            if (pk.TID16 == 06930 && !MystryMew.IsValidSeed(Util.Rand32()))
                 continue;
 
             break;
         } while (++count < 5_000_000);
     }
 
-    private static bool IsMatchFromPKHeX(PKM pk, PKM request, int hiddenPower, bool shiny, byte gr, IEncounterTemplate enc, uint seed, PIDType Method)
+    private static bool IsMatchFromPKHeX(PKM pk, PKM request, int hiddenPower, byte gr, PIDType Method)
     {
         if (pk.AbilityNumber != request.AbilityNumber && pk.Nature != request.Nature)
             return false;
