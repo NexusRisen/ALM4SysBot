@@ -846,7 +846,8 @@ public static class APILegality
 
         if (enc is MysteryGift mg)
         {
-            var ivs = pk.IVs;
+            Span<int> ivs = [];
+            pk.GetIVs(ivs);
             Span<int> mgIvs = [];
             mg.GetIVs(mgIvs);
             for (int i = 0; i < mgIvs.Length; i++)

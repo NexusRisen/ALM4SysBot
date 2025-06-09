@@ -94,7 +94,7 @@ public static class PKSMUtil
 
             var strings = GameInfo.Strings;
             previews.Add(new PKMPreview(pk, strings));
-            var fileName = Path.Combine(dir, Util.CleanFileName(pk.FileName));
+            var fileName = Path.Combine(dir, PathUtil.CleanFileName(pk.FileName));
             File.WriteAllBytes(fileName, pk.DecryptedPartyData);
             ctr++;
         }
