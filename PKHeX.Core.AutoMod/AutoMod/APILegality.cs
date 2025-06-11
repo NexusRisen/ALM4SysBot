@@ -846,9 +846,9 @@ public static class APILegality
 
         if (enc is MysteryGift mg)
         {
-            Span<int> ivs = [];
+            Span<int> ivs = stackalloc int[6];
             pk.GetIVs(ivs);
-            Span<int> mgIvs = [];
+            Span<int> mgIvs = stackalloc int[6];
             mg.GetIVs(mgIvs);
             for (int i = 0; i < mgIvs.Length; i++)
                 ivs[i] = mgIvs[i] > 31 ? set.IVs[i] : mgIvs[i];

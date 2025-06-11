@@ -75,7 +75,7 @@ public class LivingDex : AutoModPlugin
             if (ModLogic.TrackingCount != lastCount)
             {
                 lastCount = ModLogic.TrackingCount;
-                t.Invoke(() => t.Count = lastCount);
+                t.Count = lastCount;
             }
         }
     }
