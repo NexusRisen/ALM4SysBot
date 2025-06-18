@@ -118,7 +118,7 @@ public static class SimpleEdits
     /// <param name="isShiny">Shiny value that needs to be set</param>
     /// <param name="enc">Encounter details</param>
     /// <param name="shiny">Set is shiny</param>
-    public static void SetShinyBoolean(this PKM pk, bool isShiny, IEncounterTemplate enc, Shiny shiny)
+    public static void SetShinyBoolean(this PKM pk, bool isShiny, IEncounterTemplate enc, Shiny shiny, PIDType method, EncounterCriteria criteria)
     {
         if (IsShinyLockedSpeciesForm(pk.Species, pk.Form))
             return;
@@ -184,7 +184,13 @@ public static class SimpleEdits
             bool IsBit3Set() => ((pk.TID16 ^ pk.SID16 ^ (int)(pk.PID & 0xFFFF) ^ (int)(pk.PID >> 16)) & ~0x7) == 8;
             return;
         }
-
+        if (pk.Version == GameVersion.CXD && method == PIDType.CXD && criteria.Shiny.IsShiny()) // verify locks
+        {
+            MethodCXD.SetStarterFromIVs((XK3)pk, criteria);
+        }
+        var la = new LegalityAnalysis(pk);
+        if (la.Info.PIDIV.Type is not PIDType.CXD and not PIDType.CXD_ColoStarter || !la.Info.PIDIVMatches || !pk.IsValidGenderPID(enc))
+            MethodCXD.SetFromIVs((XK3)pk, criteria, (PersonalInfo3)pk.PersonalInfo, false);
         TrainerIDVerifier.TryGetShinySID(pk.PID, pk.TID16, pk.Version, out var sid);
         pk.SID16 = sid;
         if (isShiny && enc.Generation is 1 or 2)
