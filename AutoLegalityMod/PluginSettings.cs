@@ -33,7 +33,7 @@ public class PluginSettings
 
     [Category(Trainer)]
     [Description("Default OT Name to use while generating Pokémon.")]
-    public string DefaultOT { get; set; } = "ALM";
+    public string DefaultOT { get; set; } = "Ash";
 
     [Category(Trainer)]
     [Description("Default TID to use while generating Pokémon. (TID16)")]
@@ -161,7 +161,7 @@ public class PluginSettings
     // Development
     [Category(Development)]
     [Description("If enabled, ignores version mismatch warnings until the next PKHeX.Core release. Also bypasses Switch connection checks.")]
-    public bool EnableDevMode { get; set; } = false;
+    public bool EnableDevMode { get; set; } = true;
 
     [Browsable(false)]
     public string LatestAllowedVersion { get; set; } = "0.0.0.0";
