@@ -112,108 +112,221 @@ public static class SimpleEdits
     }
 
     /// <summary>
-    /// Sets shiny value to whatever boolean is specified. Takes in specific shiny as a boolean. Ignores it for stuff that is gen 5 or lower. Cant be asked to find out all legality quirks
+    /// Sets shiny value to whatever boolean is specified. Takes in specific shiny as a boolean.
     /// </summary>
     /// <param name="pk">PKM to modify</param>
     /// <param name="isShiny">Shiny value that needs to be set</param>
     /// <param name="enc">Encounter details</param>
     /// <param name="shiny">Set is shiny</param>
+    /// <param name="method">PID generation method</param>
+    /// <param name="criteria">Encounter criteria</param>
     public static void SetShinyBoolean(this PKM pk, bool isShiny, IEncounterTemplate enc, Shiny shiny, PIDType method, EncounterCriteria criteria)
     {
+        // Early exit conditions
         if (IsShinyLockedSpeciesForm(pk.Species, pk.Form))
             return;
 
         if (pk.IsShiny == isShiny)
-            return; // don't mess with stuff if pk is already shiny. Also do not modify for specific shinies (Most likely event shinies)
+            return; // Already has the desired shiny state
 
+        // Handle non-shiny request
         if (!isShiny)
         {
             pk.SetUnshiny();
             return;
         }
 
-        if (enc is EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND or EncounterStatic8U)
+        // Route to appropriate shiny handler based on encounter type and generation
+        var handled = enc switch
         {
-            pk.SetRaidShiny(shiny, enc);
-            return;
-        }
+            // Gen 8 Raids
+            EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND or EncounterStatic8U =>
+                HandleRaidShiny(pk, shiny, enc),
 
-        if (enc is WC8 { IsHOMEGift: true })
-        {
-            // Set XOR as 0 so SID comes out as 8 or less, Set TID based on that (kinda like a setshinytid)
-            pk.TID16 = (ushort)(0 ^ (pk.PID & 0xFFFF) ^ (pk.PID >> 16));
-            pk.SID16 = (ushort)Util.Rand.Next(8);
-            return;
-        }
+            // HOME Gifts
+            WC8 { IsHOMEGift: true } =>
+                HandleHOMEGiftShiny(pk),
 
+            // Mystery Gifts
+            MysteryGift mg =>
+                HandleMysteryGiftShiny(pk, mg, enc.Generation),
+
+            // Handle other cases by generation
+            _ => false
+        };
+
+        if (handled)
+            return;
+
+        // Handle generation-specific shiny logic
         if (enc.Generation > 5 || pk.VC)
         {
-            if (enc.Shiny is Shiny.FixedValue or Shiny.Never)
-                return;
-
-            while (true)
-            {
-                pk.SetShiny();
-                switch (shiny)
-                {
-                    case Shiny.AlwaysSquare when pk.ShinyXor != 0:
-                    case Shiny.AlwaysStar when pk.ShinyXor == 0:
-                        continue;
-                }
-                return;
-            }
+            HandleModernShiny(pk, shiny, enc);
         }
-
-        if (enc is MysteryGift mg)
+        else if (enc.Generation == 5)
         {
-            if (mg.IsEgg || mg is PGT { IsManaphyEgg: true })
-            {
-                pk.SetShinySID(); // not SID locked
-                return;
-            }
-
-            pk.SetShiny();
-            if (pk.Format < 6)
-                return;
-
-            do
-            {
-                pk.SetShiny();
-            } while (IsBit3Set());
-
-            bool IsBit3Set() => ((pk.TID16 ^ pk.SID16 ^ (int)(pk.PID & 0xFFFF) ^ (int)(pk.PID >> 16)) & ~0x7) == 8;
-            return;
+            HandleGen5Shiny(pk, shiny);
         }
-        if (pk.Version == GameVersion.CXD && method == PIDType.CXD && criteria.Shiny.IsShiny()) // verify locks
+        else if (enc.Generation is 3 or 4)
         {
-            MethodCXD.SetStarterFromIVs((XK3)pk, criteria);
+            HandleClassicShiny(pk, enc, method, criteria);
         }
-        var la = new LegalityAnalysis(pk);
-        if (la.Info.PIDIV.Type is not PIDType.CXD and not PIDType.CXD_ColoStarter || !la.Info.PIDIVMatches || !pk.IsValidGenderPID(enc))
-            MethodCXD.SetFromIVs((XK3)pk, criteria, (PersonalInfo3)pk.PersonalInfo, false);
-        TrainerIDVerifier.TryGetShinySID(pk.PID, pk.TID16, pk.Version, out var sid);
-        pk.SID16 = sid;
-        if (isShiny && enc.Generation is 1 or 2)
+        else if (enc.Generation is 1 or 2)
+        {
+            HandleGen12Shiny(pk);
+        }
+    }
+
+    /// <summary>
+    /// Handles shiny logic for raid encounters
+    /// </summary>
+    private static bool HandleRaidShiny(PKM pk, Shiny shiny, IEncounterTemplate enc)
+    {
+        pk.SetRaidShiny(shiny, enc);
+        return true;
+    }
+
+    /// <summary>
+    /// Handles shiny logic for HOME gifts
+    /// </summary>
+    private static bool HandleHOMEGiftShiny(PKM pk)
+    {
+        // Set XOR as 0 so SID comes out as 8 or less, Set TID based on that
+        pk.TID16 = (ushort)(0 ^ (pk.PID & 0xFFFF) ^ (pk.PID >> 16));
+        pk.SID16 = (ushort)Util.Rand.Next(8);
+        return true;
+    }
+
+    /// <summary>
+    /// Handles shiny logic for Mystery Gifts
+    /// </summary>
+    private static bool HandleMysteryGiftShiny(PKM pk, MysteryGift mg, byte generation)
+    {
+        if (mg.IsEgg || mg is PGT { IsManaphyEgg: true })
+        {
+            pk.SetShinySID(); // not SID locked
+            return true;
+        }
+
+        pk.SetShiny();
+
+        if (generation < 6)
+            return true;
+
+        // Ensure bit 3 is not set for Gen 6+ Mystery Gifts
+        while (IsBit3Set(pk))
+        {
             pk.SetShiny();
-        if (enc.Generation != 5)
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Handles shiny logic for modern games (Gen 6+)
+    /// </summary>
+    private static void HandleModernShiny(PKM pk, Shiny shiny, IEncounterTemplate enc)
+    {
+        if (enc.Shiny is Shiny.FixedValue or Shiny.Never)
             return;
 
         while (true)
         {
-            pk.PID = EntityPID.GetRandomPID(Util.Rand, pk.Species, pk.Gender, pk.Version, pk.Nature, pk.Form, pk.PID);
-            if (shiny == Shiny.AlwaysSquare && pk.ShinyXor != 0)
-                continue;
+            pk.SetShiny();
 
-            if (shiny == Shiny.AlwaysStar && pk.ShinyXor == 0)
+            if (IsShinyTypeMatch(pk, shiny))
+                return;
+        }
+    }
+
+    /// <summary>
+    /// Handles shiny logic for Gen 5
+    /// </summary>
+    private static void HandleGen5Shiny(PKM pk, Shiny shiny)
+    {
+        while (true)
+        {
+            pk.PID = EntityPID.GetRandomPID(Util.Rand, pk.Species, pk.Gender, pk.Version, pk.Nature, pk.Form, pk.PID);
+
+            if (!IsShinyTypeMatch(pk, shiny))
                 continue;
 
             var isValidGen5SID = pk.SID16 & 1;
             pk.SetShinySID();
             pk.EncryptionConstant = pk.PID;
+
             var result = (pk.PID & 1) ^ (pk.PID >> 31) ^ (pk.TID16 & 1) ^ (pk.SID16 & 1);
             if ((isValidGen5SID == (pk.SID16 & 1)) && result == 0)
                 break;
         }
+    }
+
+    /// <summary>
+    /// Handles shiny logic for classic games (Gen 3-4)
+    /// </summary>
+    private static void HandleClassicShiny(PKM pk, IEncounterTemplate enc, PIDType method, EncounterCriteria criteria)
+    {
+        // Type-safe handling for GameCube games
+        if (pk is XK3 xk3)
+        {
+            HandleCXDShiny(xk3, enc, method, criteria);
+            return;
+        }
+
+        // For non-CXD Gen 3-4, use standard shiny SID method
+        if (TrainerIDVerifier.TryGetShinySID(pk.PID, pk.TID16, pk.Version, out var sid))
+            pk.SID16 = sid;
+    }
+
+    /// <summary>
+    /// Handles shiny logic specifically for Colosseum/XD
+    /// </summary>
+    private static void HandleCXDShiny(XK3 xk3, IEncounterTemplate enc, PIDType method, EncounterCriteria criteria)
+    {
+        if (xk3.Version == GameVersion.CXD && method == PIDType.CXD && criteria.Shiny.IsShiny())
+        {
+            MethodCXD.SetStarterFromIVs(xk3, criteria);
+        }
+
+        var la = new LegalityAnalysis(xk3);
+        if (la.Info.PIDIV.Type is not PIDType.CXD and not PIDType.CXD_ColoStarter ||
+            !la.Info.PIDIVMatches ||
+            !xk3.IsValidGenderPID(enc))
+        {
+            MethodCXD.SetFromIVs(xk3, criteria, (PersonalInfo3)xk3.PersonalInfo, false);
+        }
+
+        if (TrainerIDVerifier.TryGetShinySID(xk3.PID, xk3.TID16, xk3.Version, out var sid))
+            xk3.SID16 = sid;
+    }
+
+    /// <summary>
+    /// Handles shiny logic for Gen 1-2
+    /// </summary>
+    private static void HandleGen12Shiny(PKM pk)
+    {
+        pk.SetShiny();
+    }
+
+    /// <summary>
+    /// Checks if the shiny type matches the requested type
+    /// </summary>
+    private static bool IsShinyTypeMatch(PKM pk, Shiny requestedType)
+    {
+        return requestedType switch
+        {
+            Shiny.AlwaysSquare => pk.ShinyXor == 0,
+            Shiny.AlwaysStar => pk.ShinyXor != 0,
+            _ => true
+        };
+    }
+
+    /// <summary>
+    /// Checks if bit 3 is set (used for Mystery Gift validation)
+    /// </summary>
+    private static bool IsBit3Set(PKM pk)
+    {
+        return ((pk.TID16 ^ pk.SID16 ^ (int)(pk.PID & 0xFFFF) ^ (int)(pk.PID >> 16)) & ~0x7) == 8;
     }
 
     public static void SetRaidShiny(this PKM pk, Shiny shiny, IEncounterTemplate enc)
