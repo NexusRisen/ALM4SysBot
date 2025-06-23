@@ -25,7 +25,7 @@ public static class APILegality
     public static bool EnableDevMode { get; set; }
     public static string LatestAllowedVersion { get; set; } = "0.0.0.0";
     public static bool PrioritizeGame { get; set; } = true;
-    public static GameVersion PrioritizeGameVersion { get; set; }
+    public static List<GameVersion> PriorityOrder { get; set; } = [];
     public static bool SetBattleVersion { get; set; }
     public static bool AllowTrainerOverride { get; set; }
     public static bool AllowBatchCommands { get; set; } = true;
@@ -304,7 +304,7 @@ public static class APILegality
         var versionlist = GameUtil.GetVersionsWithinRange(template, template.Generation);
         var gamelist = !nativeOnly ? [.. versionlist.OrderByDescending(c => c.GetGeneration())] : GetPairedVersions(destVer, versionlist);
         if (PrioritizeGame)
-            gamelist = PrioritizeGameVersion == GameVersion.Any ? PrioritizeVersion(gamelist, destVer.GetIsland()) : PrioritizeVersion(gamelist, PrioritizeGameVersion);
+            gamelist = [..PriorityOrder.Where(z=>versionlist.Contains(z))];
 
         if (template.AbilityNumber == 4 && destVer.GetGeneration() < 8)
             gamelist = [.. gamelist.Where(z => z.GetGeneration() is not 3 and not 4)];

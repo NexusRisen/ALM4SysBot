@@ -25,6 +25,7 @@ public static class TestUtil
             Legalizer.EnableEasterEggs = false;
             APILegality.SetAllLegalRibbons = false;
             APILegality.Timeout = 99999;
+            APILegality.PrioritizeGame = false;
             ParseSettings.Settings.Handler.CheckActiveHandler = false;
             ParseSettings.Settings.HOMETransfer.HOMETransferTrackerNotPresent = Severity.Fishy;
             ParseSettings.Settings.Nickname.SetAllTo(new NicknameRestriction { NicknamedTrade = Severity.Fishy, NicknamedMysteryGift = Severity.Fishy});
