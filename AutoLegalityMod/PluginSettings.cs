@@ -19,6 +19,8 @@ public class PluginSettings
     private const string Miscellaneous = nameof(Miscellaneous);
     private const string Development = nameof(Development);
 
+    private static readonly JsonSerializerOptions CachedJsonSerializerOptions = new() { WriteIndented = true };
+
     [Browsable(false)]
     public string? ConfigPath { get; init; }
 
@@ -73,8 +75,7 @@ public class PluginSettings
 
     [Category(Customization)]
     [Description("The order of GameVersions ALM will attempt to legalize from.")]
-    public List<GameVersion> PriorityOrder { get; set; } =
-        [..Enum.GetValues<GameVersion>().Where(ver => ver > GameVersion.Any && ver <= (GameVersion)51)];
+    public List<GameVersion> PriorityOrder { get; set; } = [.. Enum.GetValues<GameVersion>().Where(ver => ver > GameVersion.Any && ver <= (GameVersion)51)];
 
     [Category(Customization)]
     [Description("Adds all ribbons that are legal according to PKHeX legality.")]
@@ -111,10 +112,6 @@ public class PluginSettings
         EncounterTypeGroup.Slot,
         EncounterTypeGroup.Mystery,
     ];
-
-    //  [Category(Legality)]
-    // [Description("Disabling this will force ALM to not generate Pokemon which require a HOME tracker.")]
-    //public bool AllowHOMETransferGeneration { get; set; } = true;
 
     [Category(Legality)]
     [Description("Produces an Easter Egg Pokémon if the provided set is illegal.")]
@@ -168,8 +165,7 @@ public class PluginSettings
 
     public void Save()
     {
-        JsonSerializerOptions options = new() { WriteIndented = true };
-        string output = JsonSerializer.Serialize(this, options);
+        string output = JsonSerializer.Serialize(this, CachedJsonSerializerOptions);
         using StreamWriter sw = new(Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "almconfig.json"));
         sw.WriteLine(output);
     }
