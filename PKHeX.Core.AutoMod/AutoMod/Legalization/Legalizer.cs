@@ -66,7 +66,7 @@ public static class Legalizer
     /// <returns>Result code indicating success or failure</returns>
     public static AutoModErrorCode ImportToExisting(this SaveFile tr, IReadOnlyList<ShowdownSet> sets, IList<PKM> arr, out List<RegenTemplate> invalidAPISets, out List<RegenTemplate> timedoutSets, int start = 0, bool overwrite = true)
     {
-        var emptySlots = overwrite ? Enumerable.Range(start, sets.Count).Where(set => set < arr.Count).ToList() : FindAllEmptySlots(arr, start);
+        var emptySlots = overwrite ? [.. Enumerable.Range(start, sets.Count).Where(set => set < arr.Count)] : FindAllEmptySlots(arr, start);
         invalidAPISets = [];
         timedoutSets = [];
 

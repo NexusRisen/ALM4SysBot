@@ -304,7 +304,10 @@ public static class APILegality
         var versionlist = GameUtil.GetVersionsWithinRange(template, template.Generation);
         var gamelist = !nativeOnly ? [.. versionlist.OrderByDescending(c => c.GetGeneration())] : GetPairedVersions(destVer, versionlist);
         if (PrioritizeGame)
-            gamelist = [..PriorityOrder.Where(z=>versionlist.Contains(z))];
+            gamelist = [.. PriorityOrder.Where(z => versionlist.Contains(z))];
+
+        // Always put destination version first
+        gamelist = PrioritizeVersion(gamelist, destVer);
 
         if (template.AbilityNumber == 4 && destVer.GetGeneration() < 8)
             gamelist = [.. gamelist.Where(z => z.GetGeneration() is not 3 and not 4)];
@@ -1654,6 +1657,17 @@ public static class APILegality
         return res.Length > 0 ? res : [version];
     }
 
+    /// <summary>
+    /// Generates a legal egg Pokémon based on the provided <see cref="ShowdownSet"/> and trainer information.
+    /// </summary>
+    /// <param name="dest">The destination trainer information to use for the generated egg.</param>
+    /// <param name="set">The <see cref="ShowdownSet"/> containing the desired Pokémon details.</param>
+    /// <param name="result">
+    /// Output parameter that will contain the <see cref="LegalizationResult"/> indicating the outcome of the generation process.
+    /// </param>
+    /// <returns>
+    /// A <see cref="PKM"/> instance representing the generated egg, or a template if generation failed.
+    /// </returns>
     public static PKM GenerateEgg(this ITrainerInfo dest, ShowdownSet set, out LegalizationResult result)
     {
         result = LegalizationResult.Failed;

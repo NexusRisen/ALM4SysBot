@@ -25,8 +25,8 @@ public static class ShowdownUtil
     {
         paste = paste.Trim(); // Remove White Spaces
         if (IsTeamBackup(paste))
-            return ShowdownTeamSet.GetTeams(paste).SelectMany(z => z.Team).ToList();
-        return ShowdownParsing.GetShowdownSets(paste).ToList();
+            return [.. ShowdownTeamSet.GetTeams(paste).SelectMany(z => z.Team)];
+        return [.. ShowdownParsing.GetShowdownSets(paste)];
     }
 
     /// <summary>

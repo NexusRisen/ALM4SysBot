@@ -51,7 +51,7 @@ public static class TeamTests
                 .Where(z => personal.IsPresentInGame(z.Species, z.Form))
                 .DistinctBy(z => z.Text);
 
-            sets = filter.ToList();
+            sets = [.. filter];
             for (int i = 0; i < sets.Count; i++)
             {
                 var set = sets[i];

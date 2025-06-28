@@ -886,7 +886,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
             var subblocks = Remote.Bot.Injector switch
             {
                 LPBasic => LPBasic.SCBlocks[version].Where(z => z.Display == display).ToArray(),
-                LPPointer => LPPointer.SCBlocks[version].Where(z => z.Display == display).ToArray(),
+                LPPointer => [.. LPPointer.SCBlocks[version].Where(z => z.Display == display)],
                 _ => [],
             };
 

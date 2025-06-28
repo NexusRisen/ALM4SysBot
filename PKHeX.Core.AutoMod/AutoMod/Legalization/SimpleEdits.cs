@@ -28,6 +28,12 @@ public static class SimpleEdits
         089, // Muk
     ];
 
+    /// <summary>
+    /// Determines if a species/form combination is shiny-locked.
+    /// </summary>
+    /// <param name="species">The species ID.</param>
+    /// <param name="form">The form ID.</param>
+    /// <returns>True if shiny-locked, otherwise false.</returns>
     public static bool IsShinyLockedSpeciesForm(ushort species, byte form) => (Species)species switch
     {
         Pikachu => form is not (0 or 8), // Cap Pikachus, Cosplay
@@ -329,6 +335,12 @@ public static class SimpleEdits
         return ((pk.TID16 ^ pk.SID16 ^ (int)(pk.PID & 0xFFFF) ^ (int)(pk.PID >> 16)) & ~0x7) == 8;
     }
 
+    /// <summary>
+    /// Sets the shiny status for a raid encounter.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="shiny">The shiny type to set.</param>
+    /// <param name="enc">The encounter template.</param>
     public static void SetRaidShiny(this PKM pk, Shiny shiny, IEncounterTemplate enc)
     {
         if (pk.IsShiny)
@@ -349,6 +361,10 @@ public static class SimpleEdits
         }
     }
 
+    /// <summary>
+    /// Clears all relearn moves for the PKM.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
     public static void ClearRelearnMoves(this PKM pk)
     {
         pk.RelearnMove1 = 0;
@@ -357,11 +373,24 @@ public static class SimpleEdits
         pk.RelearnMove4 = 0;
     }
 
+    /// <summary>
+    /// Calculates a shiny PID based on TID, SID, PID, and type.
+    /// </summary>
+    /// <param name="tid">Trainer ID.</param>
+    /// <param name="sid">Secret ID.</param>
+    /// <param name="pid">PID value.</param>
+    /// <param name="type">Type value.</param>
+    /// <returns>The calculated shiny PID.</returns>
     public static uint GetShinyPID(int tid, int sid, uint pid, int type)
     {
         return (uint)(((tid ^ sid ^ (pid & 0xFFFF) ^ type) << 16) | (pid & 0xFFFF));
     }
 
+    /// <summary>
+    /// Applies height and weight values to the PKM based on the encounter template.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="enc">The encounter template.</param>
     public static void ApplyHeightWeight(this PKM pk, IEncounterTemplate enc, bool signed = true)
     {
         if (enc is { Generation: < 8, Context: not EntityContext.Gen7b } && pk.Format >= 8) // height and weight don't apply prior to GG
@@ -439,6 +468,11 @@ public static class SimpleEdits
             sz3.Scale = (byte)scale;
     }
 
+    /// <summary>
+    /// Sets the friendship values for the PKM based on the encounter template.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="enc">The encounter template.</param>
     public static void SetFriendship(this PKM pk, IEncounterTemplate enc)
     {
         if (enc.Generation <= 2)
@@ -459,12 +493,21 @@ public static class SimpleEdits
         }
     }
 
+    /// <summary>
+    /// Sets calculated values for Beluga-based PKM.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
     public static void SetBelugaValues(this PKM pk)
     {
         if (pk is PB7 pb7)
             pb7.ResetCalculatedValues();
     }
 
+    /// <summary>
+    /// Sets Awakened Values (AVs) for a PKM based on a battle template.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="set">The battle template.</param>
     public static void SetAwakenedValues(this PKM pk, IBattleTemplate set)
     {
         if (pk is not PB7 pb7)
@@ -483,6 +526,11 @@ public static class SimpleEdits
         pb7.AV_SPE = (byte)Math.Min(max, Math.Max(result[5], evs[3]));
     }
 
+    /// <summary>
+    /// Sets the handling trainer language for the PKM.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="prefer">Preferred language ID.</param>
     public static void SetHTLanguage(this PKM pk, byte prefer)
     {
         var preferID = (LanguageID)prefer;
@@ -493,6 +541,12 @@ public static class SimpleEdits
             h.HandlingTrainerLanguage = prefer;
     }
 
+    /// <summary>
+    /// Sets the Gigantamax factor for the PKM based on the battle template and encounter.Add commentMore actions
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="set">The battle template.</param>
+    /// <param name="enc">The encounter template.</param>
     public static void SetGigantamaxFactor(this PKM pk, IBattleTemplate set, IEncounterTemplate enc)
     {
         if (pk is not IGigantamax gmax || gmax.CanGigantamax == set.CanGigantamax)
@@ -502,6 +556,11 @@ public static class SimpleEdits
             gmax.CanGigantamax = set.CanGigantamax; // soup hax
     }
 
+    /// <summary>
+    /// Sets Dyna/Gimmick values for the PKM based on the battle template.
+    /// </summary>
+    /// <param name="pk">The PKM to modify.</param>
+    /// <param name="set">The battle template.</param>
     public static void SetGimmicks(this PKM pk, IBattleTemplate set)
     {
         if (pk is IDynamaxLevel d)

@@ -91,7 +91,7 @@ public abstract class InjectionBase(LiveHeXVersion lv, bool useCache) : PointerC
         if (!SupportedTitleVersions.TryGetValue(titleID, out var versions))
             return Unknown;
 
-        versions = versions.Reverse().ToArray();
+        versions = [.. versions.Reverse()];
         var sanitized = gameVersion.Replace(".", "");
         foreach (var version in versions)
         {

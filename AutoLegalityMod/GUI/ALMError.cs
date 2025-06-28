@@ -18,7 +18,7 @@ public partial class ALMError : Form
         InitializeComponent();
         label1.Text = error_txt;
         var btn_ctrls = new[] { BTN1, BTN2, BTN3, BTN4 };
-        buttons = buttons.Reverse().ToArray();
+        buttons = [.. buttons.Reverse()];
         var btn_loc = label1.Location.Y + label1.Size.Height + 10;
         var height_diff = btn_loc - BTN1.Location.Y;
         for (int i = 0; i < buttons.Length; i++)

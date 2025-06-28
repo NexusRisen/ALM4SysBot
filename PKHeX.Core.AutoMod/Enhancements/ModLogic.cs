@@ -410,6 +410,12 @@ public static class ModLogic
     public static PKM[] GetSixRandomMons(this ITrainerInfo tr) =>
         tr.GetSixRandomMons(GameData.GetPersonal(tr.Version));
 
+    /// <summary>
+    /// Generates a team of six random legal Pokémon for the given trainer and personal table.
+    /// </summary>
+    /// <param name="tr">Trainer information to use for generating Pokémon.</param>
+    /// <param name="personal">Personal table containing species and form data.</param>
+    /// <returns>An array of six legal <see cref="PKM"/> objects.</returns>
     public static PKM[] GetSixRandomMons(this ITrainerInfo tr, IPersonalTable personal)
     {
         var result = new PKM[6];
@@ -510,6 +516,13 @@ public static class ModLogic
 
         return result;
     }
+
+    /// <summary>
+    /// Generates a living egg dex (one egg per species) for the given trainer and personal table.
+    /// </summary>
+    /// <param name="sav">Trainer information to use for generating eggs.</param>
+    /// <param name="personal">Personal table containing species data.</param>
+    /// <returns>An enumerable of generated <see cref="PKM"/> egg objects, one per species.</returns>
     public static IEnumerable<PKM> GenerateLivingEggDex(this ITrainerInfo sav, IPersonalTable personal)
     {
         var pklist = new ConcurrentBag<PKM>();

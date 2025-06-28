@@ -28,6 +28,13 @@ public static class ShowdownEdits
             pk.Gender = pk.GetSaneGender();
     }
 
+    /// <summary>
+    /// Sets the nature of the given <see cref="PKM"/> based on the provided <see cref="IBattleTemplate"/> and <see cref="IEncounterTemplate"/>.
+    /// Handles special cases for Toxtricity, neutral natures, and legality checks for generations other than 3 or 4.
+    /// </summary>
+    /// <param name="pk">The <see cref="PKM"/> to modify.</param>
+    /// <param name="set">The <see cref="IBattleTemplate"/> containing the desired nature information.</param>
+    /// <param name="enc">The <see cref="IEncounterTemplate"/> providing encounter details for legality checks.</param>
     public static void SetNature(PKM pk, IBattleTemplate set, IEncounterTemplate enc)
     {
         if (pk.Nature == set.Nature || set.Nature == Nature.Random)
@@ -64,6 +71,14 @@ public static class ShowdownEdits
             pk.StatNature = Nature.Serious;
     }
 
+
+    /// <summary>
+    /// Sets the ability of the given <see cref="PKM"/> based on the provided <see cref="IBattleTemplate"/> and <see cref="AbilityPermission"/> preference.
+    /// Handles hidden abilities, ability number selection, and special cases for transferred Pokémon.
+    /// </summary>
+    /// <param name="pk">The <see cref="PKM"/> to modify.</param>
+    /// <param name="set">The <see cref="IBattleTemplate"/> containing the desired ability information.</param>
+    /// <param name="preference">The <see cref="AbilityPermission"/> indicating the preferred ability slot.</param>
     public static void SetAbility(PKM pk, IBattleTemplate set, AbilityPermission preference)
     {
         if (pk.Ability != set.Ability)
