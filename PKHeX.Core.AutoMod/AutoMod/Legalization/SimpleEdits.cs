@@ -146,7 +146,7 @@ public static class SimpleEdits
         var handled = enc switch
         {
             // Gen 8 Raids
-            EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND or EncounterStatic8U =>
+            EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND =>
                 HandleRaidShiny(pk, shiny, enc),
 
             // HOME Gifts
@@ -353,8 +353,6 @@ public static class SimpleEdits
                 return;
 
             var xor = pk.ShinyXor;
-            if (enc is EncounterStatic8U && xor != 1 && shiny != Shiny.AlwaysSquare)
-                continue;
 
             if ((shiny == Shiny.AlwaysStar && xor == 1) || (shiny == Shiny.AlwaysSquare && xor == 0) || ((shiny is Shiny.Always or Shiny.Random) && xor < 2)) // allow xor1 and xor0 for den shinies
                 return;

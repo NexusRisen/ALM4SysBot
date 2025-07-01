@@ -24,7 +24,7 @@ public static class APILegality
     public static bool UseMarkings { get; set; } = true;
     public static bool EnableDevMode { get; set; }
     public static string LatestAllowedVersion { get; set; } = "0.0.0.0";
-    public static bool PrioritizeGame { get; set; } = true;
+    public static bool PrioritizeGame { get; set; } = false;
     public static List<GameVersion> PriorityOrder { get; set; } = [];
     public static bool SetBattleVersion { get; set; }
     public static bool AllowTrainerOverride { get; set; }
@@ -71,9 +71,7 @@ public static class APILegality
         var batchedit = AllowBatchCommands && regen.HasBatchSettings;
         var native = ModLogic.Config.NativeOnly && nativeOnly;
         var destType = template.GetType();
-        var destVer = dest.GetSingleVersion();
-        if (destVer == GameVersion.HGSS)
-            destVer = GameVersion.SS; // HGSS as the destination version returns 0 for maxGameSpeciesID which then fails dest.ExistsInGame check.
+        var destVer = dest.GetSingleVersion(); 
         if (destVer <= 0 && dest is SaveFile s)
             destVer = s.Version;
         if (dest.Generation <= 2)
@@ -555,7 +553,7 @@ public static class APILegality
     public static bool IsPIDIVSet(PKM pk, IEncounterTemplate enc) => enc switch
     {
         // If PID and IV is handled in PreSetPIDIV, don't set it here again and return out
-        ITeraRaid9 or EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND or EncounterStatic8U => true,
+        ITeraRaid9 or EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND => true,
         IOverworldCorrelation8 o when o.GetRequirement(pk) == OverworldCorrelation8Requirement.MustHave => true,
         IStaticCorrelation8b s when s.GetRequirement(pk) == StaticCorrelation8bRequirement.MustHave => true,
         EncounterSlot3 when pk.Species == (ushort)Species.Unown => true,
@@ -577,7 +575,6 @@ public static class APILegality
         pk.MetLocation = enc switch
         {
             EncounterStatic8N or EncounterStatic8ND or EncounterStatic8NC => SharedNest,
-            EncounterStatic8U => MaxLair,
             _ => pk.MetLocation,
         };
         return pk;
@@ -935,11 +932,6 @@ public static class APILegality
             if (set.TeraType != MoveType.Any && set.TeraType != pk9.TeraType)
                 pk9.SetTeraType(set.TeraType);
         }
-        else if (enc is EncounterStatic8U && set.Shiny)
-        {
-            // Dynamax Adventure shinies are always XOR 1 (thanks santacrab!)
-            pk.PID = SimpleEdits.GetShinyPID(pk.TID16, pk.SID16, pk.PID, 1);
-        }
         else if (enc is IOverworldCorrelation8 eo)
         {
             if (eo.GetRequirement(pk) != OverworldCorrelation8Requirement.MustHave)
@@ -1023,16 +1015,16 @@ public static class APILegality
             {
                 var tid = (ushort)fakeTID;
                 var sid = (ushort)(fakeTID >> 16);
-                if (!ShinyUtil.GetIsShiny(fakeTID, pid)) // battled
+                if (!ShinyUtil.GetIsShiny6(fakeTID, pid)) // battled
                     pid = ShinyUtil.GetShinyPID(tid, sid, pid, 0);
-                if (!ShinyUtil.GetIsShiny(pk.ID32, pid)) // captured
+                if (!ShinyUtil.GetIsShiny6(pk.ID32, pid)) // captured
                     pid = ShinyUtil.GetShinyPID(pk.TID16, pk.SID16, pid, ShinyUtil.GetShinyXor(pid, fakeTID) == 0 ? 0u : 1u);
             }
             else // Never
             {
-                if (ShinyUtil.GetIsShiny(fakeTID, pid)) // battled
+                if (ShinyUtil.GetIsShiny6(fakeTID, pid)) // battled
                     pid ^= 0x1000_0000;
-                if (ShinyUtil.GetIsShiny(pk.ID32, pid)) // captured
+                if (ShinyUtil.GetIsShiny6(pk.ID32, pid)) // captured
                     pid ^= 0x1000_0000;
             }
             pk.PID = pid;
@@ -1504,8 +1496,6 @@ public static class APILegality
     {
         if (enc is IEncounterEgg && enc is not EncounterEgg8b)
             return criteria;
-        if (enc is EncounterStatic8U)
-            criteria = criteria with { Shiny = Shiny.Never };
         if(enc.Generation > 7)
             criteria = criteria with { Nature = Nature.Random };
         return enc.Species switch
