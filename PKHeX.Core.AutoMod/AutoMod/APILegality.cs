@@ -553,7 +553,7 @@ public static class APILegality
     public static bool IsPIDIVSet(PKM pk, IEncounterTemplate enc) => enc switch
     {
         // If PID and IV is handled in PreSetPIDIV, don't set it here again and return out
-        ITeraRaid9 or EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND => true,
+        ITeraRaid9 or EncounterStatic8N or EncounterStatic8NC or EncounterStatic8ND or EncounterStatic8U => true,
         IOverworldCorrelation8 o when o.GetRequirement(pk) == OverworldCorrelation8Requirement.MustHave => true,
         IStaticCorrelation8b s when s.GetRequirement(pk) == StaticCorrelation8bRequirement.MustHave => true,
         EncounterSlot3 when pk.Species == (ushort)Species.Unown => true,
@@ -575,6 +575,7 @@ public static class APILegality
         pk.MetLocation = enc switch
         {
             EncounterStatic8N or EncounterStatic8ND or EncounterStatic8NC => SharedNest,
+            EncounterStatic8U => MaxLair,
             _ => pk.MetLocation,
         };
         return pk;
@@ -931,6 +932,11 @@ public static class APILegality
             else if (enc is EncounterMight9 m) FindTeraPIDIV(pk9, m, set, criteria);
             if (set.TeraType != MoveType.Any && set.TeraType != pk9.TeraType)
                 pk9.SetTeraType(set.TeraType);
+        }
+        else if (enc is EncounterStatic8U && set.Shiny)
+        {
+            // Dynamax Adventure shinies are always XOR 1 (thanks santacrab!)
+            pk.PID = SimpleEdits.GetShinyPID(pk.TID16, pk.SID16, pk.PID, 1);
         }
         else if (enc is IOverworldCorrelation8 eo)
         {
@@ -1380,7 +1386,9 @@ public static class APILegality
     {
         if (enc is IEncounterEgg && enc is not EncounterEgg8b)
             return criteria;
-        if(enc.Generation > 7)
+        if (enc is EncounterStatic8U)
+            criteria = criteria with { Shiny = Shiny.Never };
+        if (enc.Generation > 7)
             criteria = criteria with { Nature = Nature.Random };
         return enc.Species switch
         {
