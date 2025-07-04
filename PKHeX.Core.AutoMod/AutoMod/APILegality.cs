@@ -957,12 +957,6 @@ public static class APILegality
             if (!SimpleEdits.TryApplyHardcodedSeedWild8(pk8, enc, cloned, shiny))
                 FindWildPIDIV8(pk8, shiny, flawless);
         }
-        else if (enc is EncounterEgg8b)
-        {
-            pk.SetIVs(set.IVs);
-            Shiny shiny = set is RegenTemplate r ? r.Regen.Extra.ShinyType : set.Shiny ? Shiny.Always : Shiny.Never;
-            FindEggPIDIV8b(pk, shiny, criteria, enc);
-        }
         else if (enc is EncounterSlot3 { Species: (ushort)Species.Unown } enc3)
         {
             enc3.SetFromIVsUnown((PK3)pk, criteria);
@@ -1185,116 +1179,6 @@ public static class APILegality
         var weight = (int)rng.NextInt(0x81) + (int)rng.NextInt(0x80);
         pk.HeightScalar = (byte)height;
         pk.WeightScalar = (byte)weight;
-    }
-
-    /// <summary>
-    /// Egg PID IVs being set through XOROSHIRO1288b
-    /// </summary>
-    /// <param name="pk">Pokémon to edit</param>
-    /// <param name="shiny">Shinytype requested</param>
-    /// <param name="criteria"></param>
-    public static void FindEggPIDIV8b(PKM pk, Shiny shiny, EncounterCriteria criteria, IEncounterTemplate enc)
-    {
-        Span<int> ivs = stackalloc int[6];
-        ReadOnlySpan<int> requiredIVs = [pk.IV_HP, pk.IV_ATK, pk.IV_DEF, pk.IV_SPA, pk.IV_SPD, pk.IV_SPE];
-        var pi = PersonalTable.BDSP.GetFormEntry(enc.Species, enc.Form);
-        var ratio = pi.Gender;
-        var species = enc.Species;
-
-        Span<uint> randomivs = stackalloc uint[6];
-        while (true)
-        {
-            var seed = (ulong)(int)Util.Rand32(); // sign extend when casting to ulong
-            var rng = new Xoroshiro128Plus8b(seed);
-
-            var nido = (uint)(species - (int)Species.NidoranF) / 3;
-            if (nido < 2)
-            {
-                // 0: M, 1: F. nido is F=0; reject if equals (mismatch).
-                if (rng.NextUInt(2) == nido)
-                    continue;
-            }
-            else if (species is (int)Species.Illumise or (int)Species.Volbeat)
-            {
-                // 0: M, 1: F. Delta is F=0, reject if equals (mismatch).
-                if (rng.NextUInt(2) == (int)Species.Illumise - species)
-                    continue;
-            }
-            else if (species == (int)Species.Indeedee)
-            {
-                if (rng.NextUInt(2) != enc.Form)
-                    continue;
-            }
-
-            if (ratio is not (PersonalInfo.RatioMagicMale or PersonalInfo.RatioMagicFemale or PersonalInfo.RatioMagicGenderless))
-            {
-                var rand = rng.NextUInt(252) + 1;
-                if (criteria.IsSpecifiedGender())
-                {
-                    var roll = rand < ratio ? 1 : 0;
-                    if ((byte)criteria.Gender != roll)
-                        continue;
-                }
-            }
-
-            // nature
-            _ = rng.NextUInt(25); // Assume one parent always carries an Everstone.
-
-            // ability
-            _ = rng.NextUInt(100); // Ability can be changed using Capsule/Patch (Assume parent is ability 0/1).
-
-            // The game does a rand(6) to decide which IV's inheritance to check.
-            // If that IV isn't marked to inherit from a parent, it does a rand(2) to pick the parent.
-            // When generating egg IVs, it first randomly fills in the egg IVs with rand(32) x6, then overwrites with parent IVs based on tracking.
-            // We'll assume both parents have the perfect IVs and copy over the parent IV as it's inherited, then fill in blanks afterward.
-
-            // assume other parent always has destiny knot
-            const int inheritCount = 5;
-            var inherited = 0;
-            ivs.Fill(-1);
-            while (inherited < inheritCount)
-            {
-                var stat = (int)rng.NextUInt(6); // Decides which IV to check.
-                if (ivs[stat] != -1) // Only -1 if not already inherited.
-                    continue;
-
-                _ = rng.NextUInt(2); // Decides which parent's IV to inherit. Assume both parents have the same desired IVs.
-                ivs[stat] = requiredIVs[stat];
-                inherited++;
-            }
-
-            // Roll all 6 IVs. Parent inheritance will override.
-            for (int i = 0; i < randomivs.Length; i++)
-                randomivs[i] = rng.NextUInt(32);
-            for (int i = 0; i < 6; i++)
-            {
-                if (ivs[i] == -1)
-                    ivs[i] = (int)randomivs[i];
-            }
-
-            if (!criteria.IsIVsCompatibleSpeedLast(ivs))
-                continue;
-            pk.IV_HP = ivs[0];
-            pk.IV_ATK = ivs[1];
-            pk.IV_DEF = ivs[2];
-            pk.IV_SPA = ivs[3];
-            pk.IV_SPD = ivs[4];
-            pk.IV_SPE = ivs[5];
-
-            pk.EncryptionConstant = rng.NextUInt();
-
-            // PID dissociated completely (assume no masuda and no shiny charm)
-            if (shiny is Shiny.Never or Shiny.Random)
-            {
-                pk.SetUnshiny();
-            }
-            else
-            {
-                pk.PID = SimpleEdits.GetShinyPID(pk.TID16, pk.SID16, pk.PID, shiny == Shiny.AlwaysSquare ? 0 : 1);
-            }
-
-            break;
-        }
     }
 
     private static bool IsMatchCriteria9(PK9 pk, IBattleTemplate template, EncounterCriteria criteria, bool compromise = false)
