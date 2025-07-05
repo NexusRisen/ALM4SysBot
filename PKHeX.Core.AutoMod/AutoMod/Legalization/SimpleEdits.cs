@@ -353,9 +353,32 @@ public static class SimpleEdits
                 return;
 
             var xor = pk.ShinyXor;
-            if (enc is EncounterStatic8U && xor != 1 && shiny != Shiny.AlwaysSquare)
-                continue;
-            if ((shiny == Shiny.AlwaysStar && xor == 1) || (shiny == Shiny.AlwaysSquare && xor == 0) || ((shiny is Shiny.Always or Shiny.Random) && xor < 2)) // allow xor1 and xor0 for den shinies
+
+            // Special handling for Max Lair encounters - they must have XOR=1 when shiny
+            if (enc is EncounterStatic8U)
+            {
+                // If already shiny with XOR=1, we're done
+                if (xor == 1)
+                    return;
+
+                // If not shiny and we don't want shiny, we're done  
+                if (!pk.IsShiny && shiny == Shiny.Never)
+                    return;
+
+                // Force XOR=1 for shiny Max Lair encounters
+                if (pk.IsShiny && xor != 1)
+                {
+                    pk.PID = GetShinyPID(pk.TID16, pk.SID16, pk.PID, 1);
+                    return;
+                }
+
+                continue; // Try again if conditions not met
+            }
+
+            // Regular raid shiny handling for other encounter types
+            if ((shiny == Shiny.AlwaysStar && xor == 1) ||
+                (shiny == Shiny.AlwaysSquare && xor == 0) ||
+                ((shiny is Shiny.Always or Shiny.Random) && xor < 2))
                 return;
         }
     }
