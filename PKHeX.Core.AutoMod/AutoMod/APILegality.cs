@@ -226,7 +226,7 @@ public static class APILegality
 
     private static IEnumerable<IEncounterable> GetAllEncounters(PKM pk, ReadOnlyMemory<ushort> moves, IReadOnlyList<GameVersion> vers)
     {
-        var orig_encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, vers);
+        var orig_encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, (GameVersion[])vers);
         foreach (var enc in orig_encs)
             yield return enc;
 
@@ -249,7 +249,7 @@ public static class APILegality
 
             pk.Form = f;
             pk.SetGender(pk.GetSaneGender());
-            var encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, vers);
+            var encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, (GameVersion[])vers);
             foreach (var enc in encs)
                 yield return enc;
         }
