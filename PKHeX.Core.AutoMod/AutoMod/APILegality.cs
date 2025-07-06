@@ -84,7 +84,7 @@ public static class APILegality
             gamelist = [GameVersion.R, GameVersion.S];
 
         var mutations = EncounterMutationUtil.GetSuggested(dest.Context, set.Level);
-        var encounters = GetAllEncounters(pk: template, moves: new ReadOnlyMemory<ushort>(set.Moves), gamelist);
+        var encounters = GetAllEncounters(pk: template, dest, moves: new ReadOnlyMemory<ushort>(set.Moves), gamelist);
         var criteria = EncounterCriteria.GetCriteria(set, template.PersonalInfo, mutations);
         if (regen.EncounterFilters.Any())
             encounters = encounters.Where(enc => BatchEditing.IsFilterMatch(regen.EncounterFilters, enc));
@@ -224,9 +224,9 @@ public static class APILegality
         return basepkm;
     }
 
-    private static IEnumerable<IEncounterable> GetAllEncounters(PKM pk, ReadOnlyMemory<ushort> moves, IReadOnlyList<GameVersion> vers)
+    private static IEnumerable<IEncounterable> GetAllEncounters(PKM pk, ITrainerInfo sav, ReadOnlyMemory<ushort> moves, params GameVersion[] vers)
     {
-        var orig_encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, (GameVersion[])vers);
+        var orig_encs = EncounterMovesetGenerator.GenerateEncounters(pk, sav, moves, vers);
         foreach (var enc in orig_encs)
             yield return enc;
 
@@ -249,7 +249,7 @@ public static class APILegality
 
             pk.Form = f;
             pk.SetGender(pk.GetSaneGender());
-            var encs = EncounterMovesetGenerator.GenerateEncounters(pk, moves, (GameVersion[])vers);
+            var encs = EncounterMovesetGenerator.GenerateEncounters(pk, sav, moves, vers);
             foreach (var enc in encs)
                 yield return enc;
         }
@@ -1560,7 +1560,7 @@ public static class APILegality
             destVer = s.Version;
         if (dest.Generation <= 2)
             template.EXP = 0; // no relearn moves in gen 1/2 so pass level 1 to generator
-        var encounters = GetAllEncounters(template, template.Moves, [dest.Version]);
+        var encounters = GetAllEncounters(template, dest, template.Moves, dest.Version);
         encounters = encounters.Where(z => z.IsEgg);
         if (!encounters.Any())
         {
