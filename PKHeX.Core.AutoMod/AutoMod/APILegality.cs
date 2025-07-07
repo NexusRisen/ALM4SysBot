@@ -52,6 +52,19 @@ public static class APILegality
         {
             t.FixGender(template.PersonalInfo);
             regen = t.Regen;
+
+            // Fix gender for Mighty raid encounters BEFORE any processing
+            if (regen.TryGetBatchValue(nameof(IRibbonSetMark9.RibbonMarkMightiest), out var value)
+                && string.Equals(value, "true", StringComparison.OrdinalIgnoreCase))
+            {
+                // Get the correct gender for Mighty raids (pass form for regional variants)
+                var mightyGender = SimpleEdits.GetMightyRaidGender(template.Species, template.Form);
+                if (mightyGender.HasValue && t.Gender != mightyGender.Value)
+                {
+                    t.Gender = mightyGender.Value;
+                    template.Gender = mightyGender.Value;
+                }
+            }
         }
         else
         {
@@ -71,7 +84,7 @@ public static class APILegality
         var batchedit = AllowBatchCommands && regen.HasBatchSettings;
         var native = ModLogic.Config.NativeOnly && nativeOnly;
         var destType = template.GetType();
-        var destVer = dest.GetSingleVersion(); 
+        var destVer = dest.GetSingleVersion();
         if (destVer <= 0 && dest is SaveFile s)
             destVer = s.Version;
         if (dest.Generation <= 2)
@@ -94,6 +107,7 @@ public static class APILegality
             encounters = encounters.OrderByDescending(e => e == ogenc);
         if (set.Shiny && set.Species == (ushort)Species.Keldeo) //Keldeo seems to be the only recent shiny unlock impacted by this encounter order failure, add edge case for it until a better solution can be found
             encounters = encounters.OrderByDescending(e => e.Shiny == Shiny.Always);
+
         PKM? last = null;
         var timer = Stopwatch.StartNew();
         foreach (var enc in encounters)
@@ -444,6 +458,7 @@ public static class APILegality
     {
         if (enc is EncounterSlot3 && enc.Species == (ushort)Species.Unown && enc.Form != set.Form)
             return false;
+
         // Don't process if encounter min level is higher than requested level
         if (!IsRequestedLevelValid(set, enc))
             return false;
@@ -461,8 +476,18 @@ public static class APILegality
             return false;
 
         // Don't process if the gender does not match the set
-        if (set.Gender is not null && enc is IFixedGender { IsFixedGender: true } fg && fg.Gender != set.Gender)
-            return false;
+        if (set.Gender is not null)
+        {
+            // Special handling for EncounterMight9 - it has a fixed gender
+            if (enc is EncounterMight9 mighty)
+            {
+                if (set.Gender != mighty.Gender)
+                    return false;
+            }
+            // Regular gender check for other fixed gender encounters
+            else if (enc is IFixedGender { IsFixedGender: true } fg && fg.Gender != set.Gender)
+                return false;
+        }
 
         // Don't process if PKM is definitely Hidden Ability and the PKM is from Gen 3 or Gen 4 and Hidden Capsule doesn't exist
         var gen = enc.Generation;
