@@ -13,6 +13,19 @@ namespace PKHeX.Core.AutoMod;
 /// </summary>
 public static class APILegality
 {
+
+    private static readonly HashSet<string> EggNicknames =
+    [
+        "Egg",      // English
+        "タマゴ",    // Japanese
+        "Œuf",      // French
+        "Uovo",     // Italian
+        "Ei",       // German
+        "Huevo",    // Spanish
+        "알",       // Korean
+        "蛋",       // Chinese
+    ];
+
     /// <summary>
     /// Settings
     /// </summary>
@@ -47,6 +60,15 @@ public static class APILegality
     /// <param name="nativeOnly"></param>
     public static PKM GetLegalFromTemplate(this ITrainerInfo dest, PKM template, IBattleTemplate set, out LegalizationResult satisfied, bool nativeOnly = false, IEncounterable? ogenc = null)
     {
+        // Check if this is an egg request based on nickname
+        if (EggNicknames.Contains(set.Nickname))
+        {
+            var egg = dest.GenerateEgg(set, out satisfied);
+            if (satisfied == LegalizationResult.Regenerated)
+                return egg;
+            // If egg generation failed, continue with normal generation
+        }
+
         RegenSet regen;
         if (set is RegenTemplate t)
         {
@@ -1575,7 +1597,7 @@ public static class APILegality
     /// <returns>
     /// A <see cref="PKM"/> instance representing the generated egg, or a template if generation failed.
     /// </returns>
-    public static PKM GenerateEgg(this ITrainerInfo dest, ShowdownSet set, out LegalizationResult result)
+    public static PKM GenerateEgg(this ITrainerInfo dest, IBattleTemplate set, out LegalizationResult result)
     {
         result = LegalizationResult.Failed;
         var template = EntityBlank.GetBlank(dest.Generation);
@@ -1584,7 +1606,7 @@ public static class APILegality
         if (destVer <= 0 && dest is SaveFile s)
             destVer = s.Version;
         if (dest.Generation <= 2)
-            template.EXP = 0; // no relearn moves in gen 1/2 so pass level 1 to generator
+            template.EXP = 0;
         var encounters = GetAllEncounters(template, dest, template.Moves, dest.Version);
         encounters = encounters.Where(z => z.IsEgg);
         if (!encounters.Any())
@@ -1594,46 +1616,219 @@ public static class APILegality
         }
         var mutations = EncounterMutationUtil.GetSuggested(dest.Context, set.Level);
         var criteria = EncounterCriteria.GetCriteria(set, template.PersonalInfo, mutations);
+        Span<ushort> relearn = stackalloc ushort[4];
         foreach (var enc in encounters)
         {
             criteria = SetSpecialCriteria(criteria, enc, set);
 
-            // Create the PKM from the template.
             var raw = enc.GetPokemonFromEncounter(dest, criteria, set);
-            raw.IsEgg = true;
-            raw.CurrentFriendship = (byte)EggStateLegality.GetMinimumEggHatchCycles(raw);
 
-            // if egg wasn't originally obtained by OT => Link Trade, else => None
+            // Set egg nickname (using exact same logic as EggTrade)
+            raw.IsNicknamed = true;
+            raw.Nickname = raw.Language switch
+            {
+                1 => "タマゴ",
+                3 => "Œuf",
+                4 => "Uovo",
+                5 => "Ei",
+                7 => "Huevo",
+                8 => "알",
+                9 or 10 => "蛋",
+                _ => "Egg",
+            };
+
+            // Core egg properties
+            raw.IsEgg = true;
+
+            // Set locations based on game type
+            raw.EggLocation = raw switch
+            {
+                PB8 => 60010,
+                PK9 => 30023,
+                _ => 60002,
+            };
+
+            // Set dates - check if set has a specific MetDate
+            var metDate = DateOnly.FromDateTime(DateTime.Now);
+            if (set is RegenTemplate rt && rt.Regen.TryGetBatchValue(".MetDate", out var dateStr))
+            {
+                if (DateTime.TryParseExact(dateStr, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
+                    metDate = DateOnly.FromDateTime(parsedDate);
+                else if (DateTime.TryParse(dateStr, out parsedDate))
+                    metDate = DateOnly.FromDateTime(parsedDate);
+            }
+            raw.MetDate = metDate;
+            raw.EggMetDate = raw.MetDate;
+
+            // Basic properties
+            raw.HeldItem = 0;
+            raw.CurrentLevel = 1;
+            raw.EXP = 0;
+            raw.MetLevel = 1;
+
+            // Set MetLocation
             if (raw.Format >= 4)
             {
                 var sav = dest;
                 bool isTraded = sav.OT != raw.OriginalTrainerName || sav.TID16 != raw.TID16 || sav.SID16 != raw.SID16;
-                var loc = isTraded
-                    ? Locations.TradedEggLocation(sav.Generation, sav.Version)
-                    : LocationEdits.GetNoneLocation(raw);
-                raw.MetLocation = (ushort)loc;
+
+                // if egg wasn't originally obtained by OT => Link Trade, else => None
+                raw.MetLocation = (ushort)(isTraded
+                    ? (ushort)Locations.TradedEggLocation(sav.Generation, sav.Version)
+                    : raw switch
+                    {
+                        PB8 => 65535,
+                        PK9 => 0,
+                        _ => 30002,
+                    });
             }
             else if (raw is PK3)
             {
-                raw.Language = (int)LanguageID.Japanese; // japanese;
+                raw.Language = (int)LanguageID.Japanese; // japanese
             }
+
+            // Special handling for PB8 nickname trash
             if (raw is PB8)
                 raw.NicknameTrash.Clear();
-            raw.IsNicknamed = EggStateLegality.IsNicknameFlagSet(raw);
-            raw.Nickname = SpeciesName.GetEggName(raw.Language, raw.Format);
 
-            // Wipe egg memories
-            if (raw.Format >= 6)
-                raw.ClearMemories();
+            // Clear trainer data
+            raw.CurrentHandler = 0;
+            raw.HandlingTrainerName = "";
+            ClearHandlingTrainerTrash(raw);
+            raw.HandlingTrainerFriendship = 0;
+            raw.ClearMemories();
 
-            if (raw is PK9) // Eggs in S/V have a Version value of 0 until hatched.
-                raw.Version = 0;
-            if(new LegalityAnalysis(raw).Valid)
+            // Clear battle stats
+            raw.StatNature = raw.Nature;
+            raw.SetEVs([0, 0, 0, 0, 0, 0]);
+
+            // Handle PID/EC relationship
+            if (raw.Format >= 6 && raw.PID == raw.EncryptionConstant)
+            {
+                raw.EncryptionConstant = raw.PID ^ 0x80000000;
+            }
+
+            // Clear markings and ribbons
+            MarkingApplicator.SetMarkings(raw);
+            RibbonApplicator.RemoveAllValidRibbons(raw);
+
+            // Handle game-specific properties
+            if (raw is PK8 pk8)
+            {
+                pk8.HandlingTrainerLanguage = 0;
+                pk8.HandlingTrainerGender = 0;
+                pk8.HandlingTrainerMemory = 0;
+                pk8.HandlingTrainerMemoryFeeling = 0;
+                pk8.HandlingTrainerMemoryIntensity = 0;
+                pk8.DynamaxLevel = 0;
+            }
+            else if (raw is PB8 pb8)
+            {
+                pb8.HandlingTrainerLanguage = 0;
+                pb8.HandlingTrainerGender = 0;
+                pb8.HandlingTrainerMemory = 0;
+                pb8.HandlingTrainerMemoryFeeling = 0;
+                pb8.HandlingTrainerMemoryIntensity = 0;
+                pb8.DynamaxLevel = 0;
+            }
+            else if (raw is PK9 pk9)
+            {
+                pk9.HandlingTrainerLanguage = 0;
+                pk9.HandlingTrainerGender = 0;
+                pk9.HandlingTrainerMemory = 0;
+                pk9.HandlingTrainerMemoryFeeling = 0;
+                pk9.HandlingTrainerMemoryIntensity = 0;
+                pk9.ObedienceLevel = 1;
+                pk9.Version = 0;
+                pk9.BattleVersion = 0;
+                pk9.TeraTypeOverride = (MoveType)19;
+            }
+
+            // Set moves and relearn moves
+            raw.RefreshChecksum();
+            var la = new LegalityAnalysis(raw);
+            var encMatch = la.EncounterMatch;
+
+            // Set egg moves
+            la.GetSuggestedRelearnMoves(relearn, encMatch);
+            raw.SetRelearnMoves(relearn);
+
+            // Clear tech records
+            if (raw is ITechRecord t)
+                t.ClearRecordFlags();
+
+            // Set level-up moves appropriate for level 1
+            raw.SetSuggestedMoves();
+            raw.Move1_PPUps = raw.Move2_PPUps = raw.Move3_PPUps = raw.Move4_PPUps = 0;
+            raw.SetMaximumPPCurrent(raw.Moves);
+            raw.MaximizeFriendship(); // Hatch Egg Faster
+
+            // Final checksum refresh
+            raw.RefreshChecksum();
+
+            // Validate the egg
+            if (new LegalityAnalysis(raw).Valid)
             {
                 result = LegalizationResult.Regenerated;
                 return raw;
             }
         }
         return template;
+    }
+
+    private static void ClearNicknameTrash(PKM pokemon)
+    {
+        switch (pokemon)
+        {
+            case PK9 pk9:
+                ClearTrash(pk9.NicknameTrash, pk9.Nickname);
+                break;
+            case PA8 pa8:
+                ClearTrash(pa8.NicknameTrash, pa8.Nickname);
+                break;
+            case PB8 pb8:
+                ClearTrash(pb8.NicknameTrash, pb8.Nickname);
+                break;
+            case PB7 pb7:
+                ClearTrash(pb7.NicknameTrash, pb7.Nickname);
+                break;
+            case PK8 pk8:
+                ClearTrash(pk8.NicknameTrash, pk8.Nickname);
+                break;
+        }
+    }
+
+    private static void ClearTrash(Span<byte> trash, string name)
+    {
+        trash.Clear();
+        int maxLength = trash.Length / 2;
+        int actualLength = Math.Min(name.Length, maxLength);
+        for (int i = 0; i < actualLength; i++)
+        {
+            char value = name[i];
+            trash[i * 2] = (byte)value;
+            trash[(i * 2) + 1] = (byte)(value >> 8);
+        }
+        if (actualLength < maxLength)
+        {
+            trash[actualLength * 2] = 0x00;
+            trash[(actualLength * 2) + 1] = 0x00;
+        }
+    }
+
+    private static void ClearHandlingTrainerTrash(PKM pk)
+    {
+        switch (pk)
+        {
+            case PK8 pk8:
+                ClearTrash(pk8.HandlingTrainerTrash, "");
+                break;
+            case PB8 pb8:
+                ClearTrash(pb8.HandlingTrainerTrash, "");
+                break;
+            case PK9 pk9:
+                ClearTrash(pk9.HandlingTrainerTrash, "");
+                break;
+        }
     }
 }
