@@ -1621,7 +1621,15 @@ public static class APILegality
         {
             criteria = SetSpecialCriteria(criteria, enc, set);
 
-            var raw = enc.GetPokemonFromEncounter(dest, criteria, set);
+            // Get the appropriate trainer - use RegenTemplate trainer if available
+            var tr = dest;
+            if (set is RegenTemplate regen && APILegality.AllowTrainerOverride && regen.Regen.HasTrainerSettings && regen.Regen.Trainer != null)
+            {
+                tr = regen.Regen.Trainer;
+            }
+
+            // Create the PKM from the template.
+            var raw = enc.GetPokemonFromEncounter(tr, criteria, set);
 
             // Set egg nickname (using exact same logic as EggTrade)
             raw.IsNicknamed = true;
@@ -1667,23 +1675,16 @@ public static class APILegality
             raw.EXP = 0;
             raw.MetLevel = 1;
 
-            // Set MetLocation
-            if (raw.Format >= 4)
+            // Set MetLocation (unhatched)
+            raw.MetLocation = raw switch
             {
-                var sav = dest;
-                bool isTraded = sav.OT != raw.OriginalTrainerName || sav.TID16 != raw.TID16 || sav.SID16 != raw.SID16;
+                PB8 => 65535,
+                PK9 => 0,
+                PK3 => 0,
+                _ => 30002,
+            };
 
-                // if egg wasn't originally obtained by OT => Link Trade, else => None
-                raw.MetLocation = (ushort)(isTraded
-                    ? (ushort)Locations.TradedEggLocation(sav.Generation, sav.Version)
-                    : raw switch
-                    {
-                        PB8 => 65535,
-                        PK9 => 0,
-                        _ => 30002,
-                    });
-            }
-            else if (raw is PK3)
+            if (raw is PK3)
             {
                 raw.Language = (int)LanguageID.Japanese; // japanese
             }
