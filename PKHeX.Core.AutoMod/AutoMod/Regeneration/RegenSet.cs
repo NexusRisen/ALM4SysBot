@@ -79,7 +79,14 @@ public sealed class RegenSet
                 lines.RemoveAt(i);
                 continue; 
             }
-            var sanitized = line.Replace(">=", "≥").Replace("<=", "≤").Replace("Unknown Token: ","");
+            var sanitized = line.Replace(">=", "≥").Replace("<=", "≤").Replace("Unknown Token: ", "");
+            // Set MetDate to YYYYMMDD format
+            if (sanitized.StartsWith(".MetDate=") && sanitized.Length > 9)
+            {
+                var dateValue = sanitized[9..];
+                if (DateTime.TryParse(dateValue, out var date))
+                    sanitized = $".MetDate={date:yyyyMMdd}";
+            }
             if (StringInstruction.TryParseInstruction(sanitized, out var mod))
             {
                 mods.Add(mod);
