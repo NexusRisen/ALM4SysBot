@@ -1648,15 +1648,29 @@ public static class APILegality
                 _ => 60002,
             };
 
-            // Set dates - check if set has a specific MetDate
+            // Set dates
             var metDate = DateOnly.FromDateTime(DateTime.Now);
-            if (set is RegenTemplate rt && rt.Regen.TryGetBatchValue(".MetDate", out var dateStr))
+
+            // Check if MetDate is specified in batch settings
+            if (set is RegenTemplate rt && rt.Regen.TryGetBatchValue("MetDate", out var dateStr))
             {
-                if (DateTime.TryParseExact(dateStr, "yyyyMMdd", null, System.Globalization.DateTimeStyles.None, out var parsedDate))
-                    metDate = DateOnly.FromDateTime(parsedDate);
-                else if (DateTime.TryParse(dateStr, out parsedDate))
-                    metDate = DateOnly.FromDateTime(parsedDate);
+                // RegenSet already converts date to YYYYMMDD format
+                if (dateStr.Length == 8 && int.TryParse(dateStr, out var dateInt))
+                {
+                    var year = dateInt / 10000;
+                    var month = (dateInt / 100) % 100;
+                    var day = dateInt % 100;
+                    if (year > 0 && month is >= 1 and <= 12 && day is >= 1 and <= 31)
+                    {
+                        try
+                        {
+                            metDate = new DateOnly(year, month, day);
+                        }
+                        catch { /* Use current date if parsing fails */ }
+                    }
+                }
             }
+
             raw.MetDate = metDate;
             raw.EggMetDate = raw.MetDate;
 
