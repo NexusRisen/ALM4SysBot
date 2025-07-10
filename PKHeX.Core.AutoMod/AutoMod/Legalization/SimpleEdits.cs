@@ -873,16 +873,16 @@ public static class SimpleEdits
         Species.Venusaur => 0,       // Male only
         Species.Blastoise => 0,      // Male only
         Species.Pikachu => 0,        // Male only
-        Species.Mewtwo => 2,         // Genderless
+        Species.Mewtwo => 2,         // Genderless (always)
         Species.Eevee => 0,          // Male only
         Species.Dragonite => 0,      // Male only
 
         // Gen 2
         Species.Meganium => 1,       // Female only
-        Species.Typhlosion when form == 0 => 0,  // Male only
+        Species.Typhlosion when form == 0 => 0,  // Male only (Johtonian)
         Species.Typhlosion when form == 1 => 1,  // Female only (Hisuian)
         Species.Feraligatr => 0,     // Male only
-        Species.Porygon2 => 2,       // Genderless
+        Species.Porygon2 => 2,       // Genderless (always)
         Species.Tyranitar => 0,      // Male only
 
         // Gen 3
@@ -890,7 +890,7 @@ public static class SimpleEdits
         Species.Blaziken => 0,       // Male only
         Species.Swampert => 0,       // Male only
         Species.Salamence => 0,      // Male only
-        Species.Metagross => 2,      // Genderless
+        Species.Metagross => 2,      // Genderless (always)
 
         // Gen 4
         Species.Torterra => 0,       // Male only
@@ -901,7 +901,7 @@ public static class SimpleEdits
         // Gen 5
         Species.Serperior => 0,      // Male only
         Species.Emboar => 0,         // Male only
-        Species.Samurott when form == 0 => 0,  // Male only
+        Species.Samurott when form == 0 => 0,  // Male only (Unovan)
         Species.Samurott when form == 1 => 0,  // Male only (Hisuian)
 
         // Gen 6
@@ -910,7 +910,7 @@ public static class SimpleEdits
         Species.Greninja => 0,       // Male only
 
         // Gen 7
-        Species.Decidueye when form == 0 => 0,  // Male only
+        Species.Decidueye when form == 0 => 0,  // Male only (Alolan)
         Species.Decidueye when form == 1 => 0,  // Male only (Hisuian)
         Species.Incineroar => 0,     // Male only
         Species.Primarina => 1,      // Female only
@@ -919,7 +919,7 @@ public static class SimpleEdits
         Species.Rillaboom => 0,      // Male only
         Species.Cinderace => 0,      // Male only
         Species.Inteleon => 0,       // Male only
-        Species.IronBundle => 2,     // Genderless
+        Species.IronBundle => 2,     // Genderless (always)
         Species.Dondozo => 0,        // Male only
 
         // Gen 9

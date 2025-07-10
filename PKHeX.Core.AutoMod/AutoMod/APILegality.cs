@@ -81,7 +81,9 @@ public static class APILegality
             {
                 // Get the correct gender for Mighty raids (pass form for regional variants)
                 var mightyGender = SimpleEdits.GetMightyRaidGender(template.Species, template.Form);
-                if (mightyGender.HasValue && t.Gender != mightyGender.Value)
+
+                // Only update if we have a gender requirement and it's not genderless
+                if (mightyGender.HasValue && mightyGender.Value != 2 && t.Gender != mightyGender.Value)
                 {
                     t.Gender = mightyGender.Value;
                     template.Gender = mightyGender.Value;
@@ -503,7 +505,10 @@ public static class APILegality
             // Special handling for EncounterMight9 - it has a fixed gender
             if (enc is EncounterMight9 mighty)
             {
-                if (set.Gender != mighty.Gender)
+                // Handle the special case where 255 means genderless in EncounterMight9
+                byte mightyGenderNormalized = mighty.Gender == 255 ? (byte)2 : mighty.Gender;
+
+                if (set.Gender != mightyGenderNormalized)
                     return false;
             }
             // Regular gender check for other fixed gender encounters
