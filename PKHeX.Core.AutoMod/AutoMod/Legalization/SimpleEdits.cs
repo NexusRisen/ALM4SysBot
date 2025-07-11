@@ -919,7 +919,6 @@ public static class SimpleEdits
         Species.Rillaboom => 0,      // Male only
         Species.Cinderace => 0,      // Male only
         Species.Inteleon => 0,       // Male only
-        Species.IronBundle => 2,     // Genderless (always)
         Species.Dondozo => 0,        // Male only
 
         // Gen 9
@@ -927,6 +926,8 @@ public static class SimpleEdits
         Species.Skeledirge => 0,     // Male only
         Species.Quaquaval => 0,      // Male only
         Species.Baxcalibur => 0,     // Male only
+        Species.IronBundle => 2,     // Genderless (always)
+        Species.Kommoo => 0,         // Male only
 
         _ => null
     };
