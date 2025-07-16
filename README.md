@@ -1,6 +1,6 @@
 # About  
 This project uses `PKHeX.Core` and PKHeX's `IPlugin` interface to add enhancements to the PKHeX program, namely **Auto**mated **Mod**ifications to simplify creation of legal Pokémon.
-This Fork is owned by [@santacrab2](https://github.com/santacrab2)
+This Fork is owned by [@hexbyt3](https://github.com/hexbyt3)
 The original project is owned by [@architdate](https://github.com/architdate) (Discord: thecommondude#8240) and [@kwsch](https://github.com/kwsch) (Discord: Kurt#6024).
 
 ## Building  
