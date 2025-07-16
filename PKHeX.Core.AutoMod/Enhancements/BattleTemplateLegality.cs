@@ -9,20 +9,29 @@ namespace PKHeX.Core.AutoMod;
 
 public static class BattleTemplateLegality
 {
-    public static string ANALYSIS_INVALID { get; set; } = "Specific analysis for this set is unavailable.";
-    public static string EXHAUSTED_ENCOUNTERS { get; set; } = "No valid matching encounter available: (Exhausted {0}/{1} possible encounters).";
-    public static string SPECIES_UNAVAILABLE_FORM { get; set; } = "{0} with form {1} is unavailable in this game.";
-    public static string SPECIES_UNAVAILABLE { get; set; } = "{0} is unavailable in the game.";
-    public static string INVALID_MOVES { get; set; } = "{0} cannot learn the following move(s) in this game: {1}.";
-    public static string ALL_MOVES_INVALID { get; set; } = "All the requested moves for this Pokémon are invalid.";
-    public static string LEVEL_INVALID { get; set; } = "Requested level is lower than the minimum possible level for {0}. Minimum required level is {1}.";
-    public static string SHINY_INVALID { get; set; } = "Requested shiny value (ShinyType.{0}) is not possible for the given set.";
-    public static string ALPHA_INVALID { get; set; } = "Requested Pokémon cannot be an Alpha.";
-    public static string BALL_INVALID { get; set; } = "{0} Ball is not possible for the given set.";
-    public static string ONLY_HIDDEN_ABILITY_AVAILABLE { get; set; } = "You can only obtain {0} with hidden ability in this game.";
-    public static string HIDDEN_ABILITY_UNAVAILABLE { get; set; } = "You cannot obtain {0} with hidden ability in this game.";
-    public static string HOME_TRANSFER_ONLY { get; set; } = "{0} is only available in this game through Home Transfer.";
-    public static string BAD_WORDS { get; set; } = "{0}'s nickname, OT or HT contains a filtered word.";
+    public static string ANALYSIS_INVALID { get; set; } = "El análisis específico para este conjunto no está disponible.";
+    public static string EXHAUSTED_ENCOUNTERS { get; set; } = "### __Error__\n- No hay un encuentro válido disponible: (Agotados **{0}/{1}** posibles encuentros).\n\n```No hay un encuentro en la base de datos que pueda corresponder al conjunto solicitado.\n\n📝Soluciones:\n• Por favor, verifica bien la informacion del conjunto e intentalo de nuevo.```\n```🔊Advertencia:\n• Debido a que Home ya no permite que los Pokémon generados en juegos que no son de origen (como generar un Enamorus en SV) sean depositados en Home ahora van a ser considerados ilegales y eso significa que ya no podrás generar ningún Pokémon que no esté disponible de forma nativa en cada juego.```\n### __Consejo__\n Puedes verificar la lista completa de pokemons abajo:\n- Lista de pokemons que no se pueden pedir al bot sin un archivo **pkm** con un __**Home Tracker**__ valido: [(Click Aqui)](https://i.imgur.com/8wMvQXa.png).\n- Lista de pokemons con __**Shiny Lock**__ en la ultima generación: [(Click Aqui)](https://i.imgur.com/vCFWPei.png).";
+    public static string SPECIES_UNAVAILABLE_FORM { get; set; } = "### __Error__\n- **{0}** con la forma **{1}** no esta disponible en este juego.\n\n```La forma solicitada para este pokemon no esta disponible en el juego.. Por favor, intentelo con la forma regular del pokemon.```";
+    public static string SPECIES_UNAVAILABLE { get; set; } = "### Error\n- **{0}** no esta disponible en el juego.\n\n```📝Soluciones:\n• Comprueba que el nombre del pokemon esta escrito correctamente y en ingles.\n\n• Puede que el pokemon solicitado no se encuentre en el juego.. Por favor, verifica la lista de pokemons obtenibles en el juego e intentalo de nuevo.```";
+    public static string INVALID_MOVES { get; set; } = "### __Error__\n- **{0}** no puede aprender los siguientes movimientos en este juego: **{1}**.";
+    public static string ALL_MOVES_INVALID { get; set; } = "### __Error__\n- Todos los movimientos solicitados para este Pokémon no son válidos.\n\n```📝Soluciones:\n• Cambia los movimientos o verifica que no estes solicitando una forma del pokemon que no puede ser obtenida por medio de intercambio.```\n```🔊Advertencia:\n• Debido a que Home ya no permite que los Pokémon generados en juegos que no son de origen (como generar un Enamorus en SV) sean depositados en Home ahora van a ser considerados ilegales y eso significa que ya no podrás generar ningún Pokémon que no esté disponible de forma nativa en cada juego.```\n### __Consejo__\n Puedes verificar la lista completa de pokemons abajo:\n- Lista de pokemons que no se pueden pedir al bot sin un archivo **pkm** con un __**Home Tracker**__ valido: [(Click Aqui)](https://i.imgur.com/8wMvQXa.png).\n- Lista de pokemons con __**Shiny Lock**__ en la ultima generación: [(Click Aqui)](https://i.imgur.com/vCFWPei.png).";
+    public static string LEVEL_INVALID { get; set; } = "### __Error__\n- El nivel solicitado es inferior al nivel mínimo posible para **{0}**. El nivel mínimo requerido es **{1}**.\n\n```📝Soluciones:\n• Cambia el nivel del pokemon solicitado al nivel {1}```";
+    public static string SHINY_INVALID { get; set; } = "### __Error__\n- Valor shiny establecido **(ShinyType.{0})** no es posible para el conjunto solicitado.\n\n```📝Soluciones:\n• Verificar que no se esta solicitando un pokemon con Shiny Lock, de ser el caso puedes eliminar (Shiny: Yes) del conjunto!```\n### __Consejo__\n- Puedes verificar la lista de pokemons con Shiny Lock aqui [(Click Aqui)](https://i.imgur.com/vCFWPei.png)";
+    public static string ALPHA_INVALID { get; set; } = "### __Error__\n- El Pokémon solicitado no pueden ser alfa.";
+    public static string BALL_INVALID { get; set; } = "### __Error__\n- **{0} Ball** no es posible para el conjunto solicitado.";
+    public static string ONLY_HIDDEN_ABILITY_AVAILABLE { get; set; } = "### __Error__\n- Sólo se puede obtener **{0}** con habilidad oculta en este juego.";
+    public static string HIDDEN_ABILITY_UNAVAILABLE { get; set; } = "### __Error__\n- No puedes obtener **{0}** con habilidad oculta en este juego.";
+    public static string HOME_TRANSFER_ONLY { get; set; } = "### __Error__\n- **{0}** sólo está disponible en este juego a través de __**Home Transfer**__.";
+    public static string BAD_WORDS { get; set; } = "### __Error__\n- El apodo, OT o HT de **{0}** contiene una palabra filtrada.\n\n```📝Soluciones:\n• Cambia el apodo, OT o HT del Pokémon para eliminar palabras prohibidas o inapropiadas.\n\n• Asegúrate de usar nombres que cumplan con las reglas del bot y del juego.```";
+
+    public static string VerifyPokemonName(string inputName, int language)
+    {
+        if (!SpeciesName.TryGetSpecies(inputName, language, out ushort species))
+        {
+            return $"### Error\n- El nombre introducido no fue reconocido como un Pokémon válido.\n\n```📝Soluciones:\n• Comprueba que el nombre del Pokémon esté escrito correctamente y en inglés.\n\n• Utiliza el nombre oficial del Pokémon en el juego.```";
+        }
+        return null; // No hay error, el nombre es válido
+    }
 
     public static string SetAnalysis(this IBattleTemplate set, ITrainerInfo sav, PKM failed)
     {
@@ -30,6 +39,9 @@ public static class BattleTemplateLegality
             failed.Version = sav.Version;
 
         var species_name = SpeciesName.GetSpeciesNameGeneration(set.Species, (int)LanguageID.English, sav.Generation);
+        var nameCheckError = VerifyPokemonName(species_name, (int)LanguageID.English);
+        if (nameCheckError != null)
+            return nameCheckError; // Si el nombre no es válido, retorna el mensaje de error.
         var analysis = set.Form == 0 ? string.Format(SPECIES_UNAVAILABLE, species_name) : string.Format(SPECIES_UNAVAILABLE_FORM, species_name, set.FormName);
 
         // Species checks
