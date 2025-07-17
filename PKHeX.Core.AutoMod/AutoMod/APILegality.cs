@@ -673,6 +673,7 @@ public static class APILegality
         pk.SetBelugaValues();
         pk.SetSuggestedContestStats(enc);
         pk.FixEdgeCases(enc);
+        pk.CheckAndSetUnrivaledDate();
 
         // Aesthetics
         pk.ApplyHeightWeight(enc);
