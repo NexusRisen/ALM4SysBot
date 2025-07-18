@@ -21,10 +21,10 @@ jobs:
         run: dotnet build PKHeX-Plugins.sln -c Release --no-restore
       - name: Extract version
         id: ver
-        shell: bash
+        shell: pwsh
         run: |
-          version=$(grep -oP '<Version>\K[^<]+' Directory.Build.props)
-          echo "version=$version" >> "$GITHUB_OUTPUT"
+          $version = Select-String -Path Directory.Build.props -Pattern '<Version>(.+)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
