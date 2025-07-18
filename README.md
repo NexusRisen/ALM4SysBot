@@ -12,7 +12,7 @@ Regular builds will usually succeed unless there are changes that are incompatib
 - Clone the PKHeX-Plugins repository using: `$ git clone https://github.com/architdate/PKHeX-Plugins.git`.
 - Right-click on the solution and click `Rebuild All`.
 - These DLLs should be placed into a `plugins` directory where the PKHeX executable is.
-   - The compiled DLL `AutoModPlugins.dll` for AutoLegality will be in the `AutoLegalityMod\bin\Release\net8.0-windows` directory.
+   - The compiled DLL `AutoModPlugins.dll` for AutoLegality will be in the `AutoLegalityMod\bin\Release\net9.0-windows` directory.
 
 ## Usage  
 To use the plugins:
