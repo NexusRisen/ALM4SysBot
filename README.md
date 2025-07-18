@@ -9,7 +9,7 @@ This project requires an IDE that supports compiling .NET based code, such as Vi
 **Regular Builds**  
 Regular builds will usually succeed unless there are changes that are incompatible with the NuGet [PKHeX.Core](https://www.nuget.org/packages/PKHeX.Core) package dependency specified in the `.csproj` files of the projects. If building fails, use the bleeding edge method instead.
 
-- Clone the PKHeX-Plugins repository using: `$ git clone https://github.com/architdate/PKHeX-Plugins.git`.
+- Clone the PKHeX-Plugins repository using: `$ git clone https://github.com/hexbyt3/AutoLegalityMod.git`.
 - Right-click on the solution and click `Rebuild All`.
 - These DLLs should be placed into a `plugins` directory where the PKHeX executable is.
    - The compiled DLL `AutoModPlugins.dll` for AutoLegality will be in the `AutoLegalityMod\bin\Release\net9.0-windows` directory.
