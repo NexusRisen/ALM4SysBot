@@ -106,7 +106,7 @@ public static class APILegality
 
         var abilityreq = GetRequestedAbility(template, set);
         var batchedit = AllowBatchCommands && regen.HasBatchSettings;
-        var native = ModLogic.Config.NativeOnly && nativeOnly;
+        var native = ModLogic.NativeOnly && nativeOnly;
         var destType = template.GetType();
         var destVer = dest.GetSingleVersion();
         if (destVer <= 0 && dest is SaveFile s)

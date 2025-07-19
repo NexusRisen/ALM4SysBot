@@ -1,28 +1,50 @@
-# About  
-This project uses `PKHeX.Core` and PKHeX's `IPlugin` interface to add enhancements to the PKHeX program, namely **Auto**mated **Mod**ifications to simplify creation of legal Pokémon.
-This Fork is owned by [@hexbyt3](https://github.com/hexbyt3)
-The original project is owned by [@architdate](https://github.com/architdate) (Discord: thecommondude#8240) and [@kwsch](https://github.com/kwsch) (Discord: Kurt#6024).
+# AutoLegalityMod
 
-## Building  
-This project requires an IDE that supports compiling .NET based code, such as Visual Studio 2022, and the [.NET 9.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
+A specialized ALM fork for [PokeBot](https://github.com/hexbyt3/PokeBot) (SysBot.NET) - dedicated to legalizing Pokémon within the trade bot ecosystem.
 
-**Regular Builds**  
-Regular builds will usually succeed unless there are changes that are incompatible with the NuGet [PKHeX.Core](https://www.nuget.org/packages/PKHeX.Core) package dependency specified in the `.csproj` files of the projects. If building fails, use the bleeding edge method instead.
+## Overview
 
-- Clone the PKHeX-Plugins repository using: `$ git clone https://github.com/architdate/PKHeX-Plugins.git`.
-- Right-click on the solution and click `Rebuild All`.
-- These DLLs should be placed into a `plugins` directory where the PKHeX executable is.
-   - The compiled DLL `AutoModPlugins.dll` for AutoLegality will be in the `AutoLegalityMod\bin\Release\net9.0-windows` directory.
+This fork is specifically maintained for SysBot.NET integration and is **not intended as a standalone PKHeX plugin**.
 
-## Usage  
-To use the plugins:
-- Create a folder named `plugins` in the same directory as PKHeX.exe.
-- Put the compiled plugins from this project in the `plugins` folder. If you downloaded the plugins from online, you will need to unblock them.
-- Start PKHeX.exe.
-- The plugins should be available for use in `Tools > Auto Legality Mod` drop-down menu.
+### Credits
+
+- **Fork Owner**: [@hexbyt3](https://github.com/hexbyt3)
+- **Original Project**: [@architdate](https://github.com/architdate) & [@kwsch](https://github.com/kwsch)
+- **Fork Source**: [santacrab2's PKHeX-Plugins](https://github.com/santacrab2/PKHeX-Plugins)
+
+## Prerequisites
+
+- Visual Studio 2022 or compatible .NET IDE
+- [.NET 9.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+
+## Build Instructions
+
+### Standard Build
+
+```bash
+git clone https://github.com/hexbyt3/AutoLegalityMod.git
+cd AutoLegalityMod
+```
+
+1. Open the solution in Visual Studio
+2. Right-click the solution → **Rebuild All**
+3. Find the compiled library at:
+   ```
+   PKHeX.Core.AutoMod\bin\...\net9.0\PKHeX.Core.AutoMod.dll
+   ```
+
+> **Note**: If the build fails due to incompatible NuGet package dependencies, use the bleeding edge build method from the original repository.
 
 ## Contributing
-To contribute to the repository, you can submit a pull request to the repository. Try to follow a format similar to the current codebase. All contributions are greatly appreciated! If you would like to discuss possible contributions without using GitHub, please contact us on the support server above. 
 
-Please ensure you run the unit tests prior to submitting a pull request to the repository. 
+We welcome contributions! Please:
 
+- Submit pull requests following the existing code style
+- Test your changes thoroughly
+- Provide clear commit messages
+
+All contributions are greatly appreciated!
+
+## License
+
+This project inherits the license from the original PKHeX-Plugins repository.
