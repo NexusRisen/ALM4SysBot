@@ -17,11 +17,34 @@ public class PluginSettings
     private const string TransferDex = nameof(TransferDex);
     private const string Miscellaneous = nameof(Miscellaneous);
     private const string Development = nameof(Development);
+    private const string AIAnalysis = nameof(AIAnalysis);
 
     private static readonly JsonSerializerOptions CachedJsonSerializerOptions = new() { WriteIndented = true };
 
     [Browsable(false)]
     public string? ConfigPath { get; init; }
+
+    // AI Analysis Settings
+    [Category(AIAnalysis)]
+    [Description("Enable AI-powered analysis of showdown sets.")]
+    public bool EnableAIAnalysis { get; set; } = false;
+
+    [Category(AIAnalysis)]
+    [Description("OpenAI API key for AI analysis features.")]
+    [PasswordPropertyText(true)]
+    public string OpenAIApiKey { get; set; } = "";
+
+    [Category(AIAnalysis)]
+    [Description("AI model to use for analysis (o1-mini or gpt-4o-mini).")]
+    public string AIModel { get; set; } = "gpt-4o-mini";
+
+    [Category(AIAnalysis)]
+    [Description("Maximum tokens for AI response.")]
+    public int MaxTokens { get; set; } = 1000;
+
+    [Category(AIAnalysis)]
+    [Description("Temperature for AI responses (0.0-1.0, lower = more focused).")]
+    public double Temperature { get; set; } = 0.7;
 
     // Trainer
     [Category(Trainer)]
