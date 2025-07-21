@@ -2,7 +2,6 @@ namespace AutoModPlugins.GUI
 {
     partial class AIAnalysisForm
     {
-        private System.ComponentModel.IContainer components = null;
         private System.Windows.Forms.TextBox TB_Input;
         private System.Windows.Forms.RichTextBox TB_Output;
         private System.Windows.Forms.Button B_Analyze;
