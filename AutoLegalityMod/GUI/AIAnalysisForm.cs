@@ -292,7 +292,7 @@ public partial class AIAnalysisForm : Form
                 moves.Add(strings.movelist[move]);
         }
 
-        return moves.OrderBy(m => m).ToList();
+        return [.. moves.OrderBy(m => m)];
     }
 
     private static List<string> GetValidBalls(ushort species, byte form, int generation, GameVersion version)
