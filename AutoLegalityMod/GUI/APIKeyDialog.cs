@@ -4,11 +4,11 @@ namespace AutoModPlugins.GUI;
 
 public class APIKeyDialog : Form
 {
-    private TextBox TB_ApiKey;
-    private Button B_OK;
-    private Button B_Cancel;
-    private Label L_Instructions;
-    private LinkLabel LL_GetKey;
+    private TextBox TB_ApiKey = null!;
+    private Button B_OK = null!;
+    private Button B_Cancel = null!;
+    private Label L_Instructions = null!;
+    private LinkLabel LL_GetKey = null!;
 
     public string ApiKey => TB_ApiKey.Text;
 
