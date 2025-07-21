@@ -33,33 +33,63 @@ public class AIService
         {
             var systemPrompt = @"You are an expert Pokémon team builder and competitive player with deep knowledge of Pokémon legality rules, breeding mechanics, and the AutoLegalityMod plugin for PKHeX. 
 
-                                Your task is to analyze Showdown sets and provide helpful, friendly advice on how to fix any legality issues. Focus on:
-                                1. Explaining what's wrong in simple terms
-                                2. Providing specific steps to fix the issue
-                                3. Suggesting alternatives if something is impossible
-                                4. Being encouraging and helpful
+                                Your task is to analyze Showdown sets and help users understand if their Pokémon is legal or not.
 
-                                IMPORTANT: Format your response for display in a plain text box. Do NOT use markdown formatting like ###, **, `, or ```. Instead:
-                                - Use clear section headers with text like 'SECTION NAME:' or '== SECTION NAME =='
-                                - Use bullet points with • or - 
-                                - Use numbered lists like 1. 2. 3.
-                                - Separate sections with blank lines
-                                - Keep formatting simple and readable";
+                                CRITICAL RULES:
+                                1. ALWAYS check the 'Legalization Status' and 'Is Legal' fields FIRST
+                                2. If Status is 'Regenerated' and Is Legal is 'True', the Pokémon is ALREADY LEGAL - don't invent issues!
+                                3. Only suggest fixes if there are actual legality problems
+                                4. Use the provided valid data (abilities, moves, balls) from the context - these are ACCURATE
+                                5. The 'VALID ABILITIES' section shows ALL abilities the Pokémon can have - trust this list completely
+                                6. Never claim an ability/move is invalid if it's listed in the VALID sections
+                                7. Keep explanations brief and accurate
+                                8. Format your response clearly with proper spacing and line breaks
 
-                                            var userPrompt = $@"Please analyze this Showdown set and help me understand any issues and how to fix them:
+                                IMPORTANT: Trust the PKHeX legality check - if it says the Pokémon is legal, then it IS legal!";
 
-                                ```
+                                            var userPrompt = $@"Analyze this Showdown set:
+
+                                Showdown Set:
                                 {showdownSet}
-                                ```
 
-                                Context from legality check:
+                                Legality Check Results:
                                 {context}
 
-                                Please provide:
-                                1. A summary of any issues found
-                                2. Step-by-step instructions to fix each issue
-                                3. Alternative suggestions if something cannot be fixed
-                                4. Any tips for avoiding similar issues in the future";
+                                IMPORTANT: Check the legalization status first!
+                                - If 'Legalization Status: Regenerated' AND 'Is Legal: True', then the set is ALREADY LEGAL
+                                - Only suggest fixes if the status is NOT Regenerated or Is Legal is False
+
+                                IF THE SET IS LEGAL (Status: Regenerated, Is Legal: True):
+                                Just respond with:
+                                == STATUS ==
+                                ✓ This Showdown set is legal and ready to use!
+
+                                The Pokémon was successfully generated and passes all legality checks.
+
+                                IF THE SET HAS ISSUES:
+                                == ISSUES FOUND ==
+
+                                • Issue 1: [Brief description]
+                                • Issue 2: [Brief description]
+
+                                == QUICK FIXES ==
+
+                                • For Issue 1: [Specific fix using valid options from above]
+                                • For Issue 2: [Specific fix using valid options from above]
+
+                                == CORRECTED SHOWDOWN SET ==
+
+                                [Pokémon Name] @ [Item]
+                                Level: [X]
+                                Ability: [Valid Ability]
+                                EVs: [Valid spread]
+                                [Nature] Nature
+                                - [Move 1]
+                                - [Move 2]
+                                - [Move 3]
+                                - [Move 4]
+
+                                CRITICAL: Always check the 'VALID ABILITIES' section in the context before claiming an ability is invalid!";
 
             var requestBody = new
             {
