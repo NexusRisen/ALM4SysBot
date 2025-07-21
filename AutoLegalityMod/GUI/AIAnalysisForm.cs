@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -104,6 +105,7 @@ public partial class AIAnalysisForm : Form
         var context = $"Game Version: {targetVersion} (Generation {_sav.Generation})\n";
         context += $"Species: {SpeciesName.GetSpeciesName(template.Species, (int)LanguageID.English)}\n";
         context += $"Form: {template.Form}\n";
+        context += $"Level: {template.Level}\n";
         context += $"Legalization Status: {pk.Status}\n";
         context += $"Is Legal: {la.Valid}\n";
         context += $"{timeInfo}\n\n";
@@ -172,7 +174,7 @@ public partial class AIAnalysisForm : Form
 
             // Get valid moves
             sb.AppendLine("\nVALID MOVES:");
-            var validMoves = GetValidMoves(species, form, gen, version);
+            var validMoves = GetValidMoves(species, form, gen, version, template.Level);
             if (validMoves.Count > 0)
             {
                 sb.AppendLine($"Total valid moves: {validMoves.Count}");
@@ -271,7 +273,7 @@ public partial class AIAnalysisForm : Form
         return uniqueAbilities;
     }
 
-    private static List<string> GetValidMoves(ushort species, byte form, int generation, GameVersion version)
+    private static List<string> GetValidMoves(ushort species, byte form, int generation, GameVersion version, byte level = 100)
     {
         var moves = new HashSet<string>();
         var strings = GameInfo.Strings;
@@ -280,11 +282,16 @@ public partial class AIAnalysisForm : Form
         var pk = EntityBlank.GetBlank((byte)generation);
         pk.Species = species;
         pk.Form = form;
-        pk.CurrentLevel = 100;
+        pk.CurrentLevel = level;
 
         // Get all possible moves
         var learnSource = GameData.GetLearnSource(version);
         var learnset = learnSource.GetLearnset(species, form);
+        foreach (var move in learnset.GetMoveRange(level))
+        {
+            if (move != 0)
+                moves.Add(strings.movelist[move]);
+        }
 
         foreach (var move in learnset.GetMoveRange(100))
         {
