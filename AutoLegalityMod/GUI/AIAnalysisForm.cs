@@ -60,6 +60,11 @@ public partial class AIAnalysisForm : Form
             var pk = almres.Created;
             var la = new LegalityAnalysis(pk);
 
+            // Check if a specific version was requested in the set
+            var targetVersion = _sav.Version;
+            if (template.Regen.TryGetBatchValue(".Version", out var versionStr) && int.TryParse(versionStr, out var version))
+                targetVersion = (GameVersion)version;
+
             // Get the legality analysis
             string legalityReport = "";
             if (almres.Status != LegalizationResult.Regenerated)
@@ -75,7 +80,7 @@ public partial class AIAnalysisForm : Form
             var timeInfo = $"Generation time: {timer.Elapsed.TotalSeconds:F2} seconds";
 
             // Create context for AI
-            var context = BuildAnalysisContext(template, almres, la, legalityReport, timeInfo);
+            var context = BuildAnalysisContext(template, almres, la, legalityReport, timeInfo, targetVersion);
 
             // Get AI analysis
             var aiResponse = await _aiService.AnalyzeShowdownSetAsync(input, context);
@@ -94,9 +99,9 @@ public partial class AIAnalysisForm : Form
         }
     }
 
-    private string BuildAnalysisContext(RegenTemplate template, AsyncLegalizationResult pk, LegalityAnalysis la, string legalityReport, string timeInfo)
+    private string BuildAnalysisContext(RegenTemplate template, AsyncLegalizationResult pk, LegalityAnalysis la, string legalityReport, string timeInfo, GameVersion targetVersion)
     {
-        var context = $"Game Version: {_sav.Version} (Generation {_sav.Generation})\n";
+        var context = $"Game Version: {targetVersion} (Generation {_sav.Generation})\n";
         context += $"Species: {SpeciesName.GetSpeciesName(template.Species, (int)LanguageID.English)}\n";
         context += $"Form: {template.Form}\n";
         context += $"Legalization Status: {pk.Status}\n";
@@ -115,14 +120,14 @@ public partial class AIAnalysisForm : Form
             context += "== DETAILED ANALYSIS ==\n";
 
             // Get valid data for this species/form
-            var validData = GetValidDataForSpecies(template, _sav);
+            var validData = GetValidDataForSpecies(template, _sav, targetVersion);
             context += validData + "\n";
         }
         else
         {
             // Still show valid data for reference even if legal
             context += "== REFERENCE DATA ==\n";
-            var validData = GetValidDataForSpecies(template, _sav);
+            var validData = GetValidDataForSpecies(template, _sav, targetVersion);
             context += validData + "\n";
         }
 
@@ -144,13 +149,13 @@ public partial class AIAnalysisForm : Form
         return context;
     }
 
-    private string GetValidDataForSpecies(RegenTemplate template, SaveFile sav)
+    private string GetValidDataForSpecies(RegenTemplate template, SaveFile sav, GameVersion targetVersion)
     {
         var sb = new StringBuilder();
         var species = template.Species;
         var form = template.Form;
         var gen = sav.Generation;
-        var version = sav.Version;
+        var version = targetVersion;
 
         try
         {
@@ -177,6 +182,19 @@ public partial class AIAnalysisForm : Form
                     sb.AppendLine($"- {move}");
                 if (validMoves.Count > 20)
                     sb.AppendLine($"... and {validMoves.Count - 20} more moves");
+            }
+
+            // Add specific move validation
+            sb.AppendLine("\nMOVE VALIDATION:");
+            var movelist = GameInfo.Strings.movelist;
+            for (int i = 0; i < template.Moves.Length; i++)
+            {
+                var move = template.Moves[i];
+                if (move == 0) continue;
+
+                var moveName = movelist[move];
+                var isValid = validMoves.Contains(moveName);
+                sb.AppendLine($"- {moveName}: {(isValid ? "Valid" : "INVALID for this species/generation")}");
             }
 
             // Get valid balls
@@ -528,8 +546,15 @@ public partial class AIAnalysisForm : Form
         // Replace inline code
         cleaned = Regex.Replace(cleaned, @"`(.+?)`", "$1");
 
-        // Replace bullet points with proper spacing
+        // Replace bullet points with proper spacing (but preserve - in showdown sets)
+        // First, protect showdown set moves by temporarily replacing them
+        cleaned = Regex.Replace(cleaned, @"^(\s*)-(\s+\w+.*?)$", "SHOWDOWNMOVE$1-$2", RegexOptions.Multiline);
+
+        // Now replace other bullet points
         cleaned = Regex.Replace(cleaned, @"^\s*[-*]\s+", "\r\n• ", RegexOptions.Multiline);
+
+        // Restore showdown moves
+        cleaned = cleaned.Replace("SHOWDOWNMOVE", "");
 
         // Fix numbered lists
         cleaned = Regex.Replace(cleaned, @"^(\d+)\.\s+", "\r\n$1. ", RegexOptions.Multiline);
