@@ -109,76 +109,34 @@ public partial class AIAnalysisForm : Form
         }
     }
 
-    private string BuildAnalysisContext(RegenTemplate template, AsyncLegalizationResult result,
-        LegalityAnalysis la, string legalityReport, string timeInfo, GameVersion targetVersion)
+    private string BuildAnalysisContext(RegenTemplate template, AsyncLegalizationResult pk, LegalityAnalysis la, string legalityReport, string timeInfo, GameVersion targetVersion)
     {
         var context = $"Game Version: {targetVersion} (Generation {_sav.Generation})\n";
         context += $"Species: {SpeciesName.GetSpeciesName(template.Species, (int)LanguageID.English)}\n";
         context += $"Form: {template.Form}\n";
         context += $"Level: {template.Level}\n";
-        context += $"Legalization Status: {result.Status}\n";
+        context += $"Legalization Status: {pk.Status}\n";
         context += $"Is Legal: {la.Valid}\n";
         context += $"{timeInfo}\n\n";
 
-        if (la.Valid && result.Status == LegalizationResult.Regenerated)
+        // Emphasize if the Pokémon is already legal
+        if (la.Valid && pk.Status == LegalizationResult.Regenerated)
         {
             context += "** THIS POKÉMON IS LEGAL - No changes needed! **\n\n";
         }
 
-        if (!la.Valid || result.Status != LegalizationResult.Regenerated)
+        // Add specific validation data from PKHeX
+        if (!la.Valid || pk.Status != LegalizationResult.Regenerated)
         {
             context += "== DETAILED ANALYSIS ==\n";
 
             // Get valid data for this species/form
             var validData = GetValidDataForSpecies(template, _sav, targetVersion);
             context += validData + "\n";
-
-            // Add specific move legality check results
-            context += "\nMOVE LEGALITY CHECKS:\n";
-            var movelist = GameInfo.Strings.movelist;
-            var moveChecks = la.Info.Moves;
-
-            for (int i = 0; i < template.Moves.Length && i < 4; i++)
-            {
-                var moveId = template.Moves[i];
-                if (moveId == 0) continue;
-
-                var moveName = moveId < movelist.Length ? movelist[moveId] : "Unknown Move";
-
-                // Check the legality of this specific move slot
-                if (i < moveChecks.Length)
-                {
-                    var moveCheck = moveChecks[i];
-                    var status = moveCheck.Valid ? "✓ Legal" : "✗ Illegal";
-                    context += $"- Move {i + 1}: {moveName} - {status}";
-
-                    // Get the specific error for invalid moves
-                    if (!moveCheck.Valid)
-                    {
-                        // Find any check results related to current moves
-                        var moveErrors = la.Results.Where(r =>
-                            r.Identifier == CheckIdentifier.CurrentMove &&
-                            !r.Valid).ToList();
-
-                        // Try to find the specific error for this move
-                        var specificError = moveErrors.FirstOrDefault(r => r.Comment.Contains(moveName));
-
-                        if (!string.IsNullOrEmpty(specificError.Comment))
-                        {
-                            context += $" ({specificError.Comment})";
-                        }
-                        else if (moveErrors.Count > i && !string.IsNullOrEmpty(moveErrors[i].Comment))
-                        {
-                            // Fallback to using index-based matching
-                            context += $" ({moveErrors[i].Comment})";
-                        }
-                    }
-                    context += "\n";
-                }
-            }
         }
         else
         {
+            // Still show valid data for reference even if legal
             context += "== REFERENCE DATA ==\n";
             var validData = GetValidDataForSpecies(template, _sav, targetVersion);
             context += validData + "\n";
@@ -186,12 +144,12 @@ public partial class AIAnalysisForm : Form
 
         if (!string.IsNullOrWhiteSpace(legalityReport))
         {
-            context += $"\nLegality Analysis:\n{legalityReport}\n\n";
+            context += $"Legality Analysis:\n{legalityReport}\n\n";
         }
 
         if (!la.Valid)
         {
-            context += "\nInvalid Checks:\n";
+            context += "Invalid Checks:\n";
             foreach (var check in la.Results)
             {
                 if (!check.Valid)
@@ -223,21 +181,26 @@ public partial class AIAnalysisForm : Form
             foreach (var ability in abilities)
                 sb.AppendLine($"- {ability}");
 
-            // Get valid moves
-            sb.AppendLine("\nVALID MOVES:");
-            var validMoves = GetValidMoves(species, form, gen, version, template.Level);
-            if (validMoves.Count > 0)
+            // Get valid moves with level information
+            sb.AppendLine("\nVALID MOVES WITH LEVELS:");
+            var movesWithLevels = GetValidMovesWithLevels(species, form, gen, version);
+            if (movesWithLevels.Count > 0)
             {
-                sb.AppendLine($"Total valid moves: {validMoves.Count}");
+                sb.AppendLine($"Total valid moves: {movesWithLevels.Count}");
                 // Show a sample of moves if there are many
-                var moveSample = validMoves.Take(20).ToList();
-                foreach (var move in moveSample)
-                    sb.AppendLine($"- {move}");
-                if (validMoves.Count > 20)
-                    sb.AppendLine($"... and {validMoves.Count - 20} more moves");
+                var moveSample = movesWithLevels.Take(20).ToList();
+                foreach (var (move, level) in moveSample)
+                {
+                    if (level > 0)
+                        sb.AppendLine($"- {move} (Level {level})");
+                    else
+                        sb.AppendLine($"- {move} (TM/TR/Tutor/Egg)");
+                }
+                if (movesWithLevels.Count > 20)
+                    sb.AppendLine($"... and {movesWithLevels.Count - 20} more moves");
             }
 
-            // Add specific move validation
+            // Add specific move validation with level requirements
             sb.AppendLine("\nMOVE VALIDATION:");
             var movelist = GameInfo.Strings.movelist;
             for (int i = 0; i < template.Moves.Length; i++)
@@ -246,8 +209,31 @@ public partial class AIAnalysisForm : Form
                 if (move == 0) continue;
 
                 var moveName = movelist[move];
-                var isValid = validMoves.Contains(moveName);
-                sb.AppendLine($"- {moveName}: {(isValid ? "Valid" : "INVALID for this species/generation")}");
+                var moveInfo = movesWithLevels.FirstOrDefault(m => m.Move == moveName);
+
+                if (moveInfo.Move != null)
+                {
+                    if (moveInfo.Level > 0)
+                    {
+                        if (moveInfo.Level <= template.Level)
+                        {
+                            sb.AppendLine($"- {moveName}: Valid (learns at level {moveInfo.Level})");
+                        }
+                        else
+                        {
+                            sb.AppendLine($"- {moveName}: INVALID at current level {template.Level} (learns at level {moveInfo.Level})");
+                            sb.AppendLine($"  → Suggestion: Either increase Pokémon level to {moveInfo.Level}+ or replace the move");
+                        }
+                    }
+                    else
+                    {
+                        sb.AppendLine($"- {moveName}: Valid (TM/TR/Tutor/Egg move)");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine($"- {moveName}: INVALID for this species/generation");
+                }
             }
 
             // Get valid balls
@@ -324,57 +310,126 @@ public partial class AIAnalysisForm : Form
         return uniqueAbilities;
     }
 
+    private static List<(string Move, int Level)> GetValidMovesWithLevels(ushort species, byte form, int generation, GameVersion version)
+    {
+        var movesWithLevels = new Dictionary<ushort, int>(); // moveId -> minimum level
+        var strings = GameInfo.Strings;
+
+        try
+        {
+            // Get all possible moves
+            var learnSource = GameData.GetLearnSource(version);
+            var learnset = learnSource.GetLearnset(species, form);
+
+            // Get all moves the Pokémon can learn
+            var allMoves = learnset.GetAllMoves();
+
+            // For each move, check if it's learned by level up and get its level
+            foreach (var moveId in allMoves)
+            {
+                if (moveId == 0) continue;
+
+                if (learnset.TryGetLevelLearnMove(moveId, out byte level))
+                {
+                    // Store the minimum level for each move (though Learnset should already have unique moves)
+                    if (!movesWithLevels.TryGetValue(moveId, out int value) || level < value)
+                    {
+                        value = level;
+                        movesWithLevels[moveId] = value;
+                    }
+                }
+            }
+
+            // Get all moves available at level 100 (includes TM/TR/Tutor/Egg moves)
+            var allAvailableMoves = learnset.GetMoveRange(100);
+            foreach (var moveId in allAvailableMoves)
+            {
+                if (moveId != 0 && !movesWithLevels.ContainsKey(moveId))
+                {
+                    // This is a TM/TR/Tutor/Egg move (not learned by level up)
+                    movesWithLevels[moveId] = 0;
+                }
+            }
+
+            // Convert to list with move names
+            var result = new List<(string Move, int Level)>();
+            foreach (var kvp in movesWithLevels)
+            {
+                var moveName = strings.movelist[kvp.Key];
+                result.Add((moveName, kvp.Value));
+            }
+
+            return [.. result.OrderBy(m => m.Move)];
+        }
+        catch (Exception)
+        {
+            // Fallback to simpler method if the above doesn't work
+            var result = new List<(string Move, int Level)>();
+
+            try
+            {
+                var learnSource = GameData.GetLearnSource(version);
+                var learnset = learnSource.GetLearnset(species, form);
+
+                // Get all moves up to level 100
+                var allMoves = learnset.GetMoveRange(100);
+
+                foreach (var moveId in allMoves)
+                {
+                    if (moveId == 0) continue;
+
+                    var moveName = strings.movelist[moveId];
+
+                    // Check if it's a level-up move
+                    if (learnset.TryGetLevelLearnMove(moveId, out byte level))
+                    {
+                        result.Add((moveName, level));
+                    }
+                    else
+                    {
+                        // It's available but not by level-up (TM/TR/Tutor/Egg)
+                        result.Add((moveName, 0));
+                    }
+                }
+            }
+            catch
+            {
+                // If all else fails, at least return the moves without level info
+                var moves = GetValidMoves(species, form, generation, version);
+                foreach (var move in moves)
+                {
+                    result.Add((move, 0));
+                }
+            }
+
+            return [.. result.OrderBy(m => m.Move)];
+        }
+    }
+
     private static List<string> GetValidMoves(ushort species, byte form, int generation, GameVersion version, byte level = 100)
     {
         var moves = new HashSet<string>();
-        var strings = GameInfo.Strings.movelist;
+        var strings = GameInfo.Strings;
 
-        // Create a blank PKM to use for move validation
+        // Get a dummy PKM for move validation
         var pk = EntityBlank.GetBlank((byte)generation);
         pk.Species = species;
         pk.Form = form;
         pk.CurrentLevel = level;
-        if (pk.Version == 0)
-            pk.Version = version;
 
-        var tr = new SimpleTrainerInfo(version) { Generation = (byte)generation };
-
-        // Get all possible encounters for this species/form
-        var encounters = EncounterMovesetGenerator.GenerateEncounters(pk, tr, default, version);
-
-        // Allocate once, reuse for each encounter
-        Span<ushort> suggested = stackalloc ushort[4];
-
-        foreach (var enc in encounters)
-        {
-            // Get suggested moves for each encounter
-            suggested.Clear();
-            var la = new LegalityAnalysis(pk);
-            la.GetSuggestedCurrentMoves(suggested, MoveSourceType.All);
-
-            foreach (var moveId in suggested)
-            {
-                if (moveId != 0 && moveId < strings.Length)
-                    moves.Add(strings[moveId]);
-            }
-
-            // Add encounter-specific moves
-            if (enc is IMoveset ms && ms.Moves.HasMoves)
-            {
-                if (ms.Moves.Move1 != 0) moves.Add(strings[ms.Moves.Move1]);
-                if (ms.Moves.Move2 != 0) moves.Add(strings[ms.Moves.Move2]);
-                if (ms.Moves.Move3 != 0) moves.Add(strings[ms.Moves.Move3]);
-                if (ms.Moves.Move4 != 0) moves.Add(strings[ms.Moves.Move4]);
-            }
-        }
-
-        // Also add level-up moves from learnset
+        // Get all possible moves
         var learnSource = GameData.GetLearnSource(version);
         var learnset = learnSource.GetLearnset(species, form);
         foreach (var move in learnset.GetMoveRange(level))
         {
-            if (move != 0 && move < strings.Length)
-                moves.Add(strings[move]);
+            if (move != 0)
+                moves.Add(strings.movelist[move]);
+        }
+
+        foreach (var move in learnset.GetMoveRange(100))
+        {
+            if (move != 0)
+                moves.Add(strings.movelist[move]);
         }
 
         return [.. moves.OrderBy(m => m)];
