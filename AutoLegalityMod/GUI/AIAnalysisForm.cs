@@ -175,8 +175,38 @@ public partial class AIAnalysisForm : Form
             if (pi == null)
                 return "Unable to find species data.";
 
+            // Add evolution level requirements FIRST
+            sb.AppendLine("EVOLUTION REQUIREMENTS:");
+            var (evolutionLevel, evolutionInfo) = GetEvolutionLevelRequirement(species, form, version);
+            if (evolutionLevel > 0)
+            {
+                sb.AppendLine($"- Minimum level for this evolution: {evolutionLevel}");
+                sb.AppendLine($"  Evolution chain: {evolutionInfo}");
+
+                if (template.Level < evolutionLevel)
+                {
+                    sb.AppendLine($"  → INVALID: Current level {template.Level} is too low!");
+                    sb.AppendLine($"  → Suggestion: Set level to at least {evolutionLevel}");
+                }
+            }
+            else
+            {
+                sb.AppendLine("- This is a base form or special evolution (no level requirement)");
+            }
+
+            // Add minimum encounter level
+            sb.AppendLine("\nMINIMUM ENCOUNTER LEVEL:");
+            var minEncounterLevel = GetMinimumEncounterLevel(species, form, version, sav);
+            sb.AppendLine($"- Minimum wild/gift encounter level: {minEncounterLevel}");
+
+            if (template.Level < minEncounterLevel)
+            {
+                sb.AppendLine($"  → INVALID: Current level {template.Level} is below minimum encounter level!");
+                sb.AppendLine($"  → Suggestion: Set level to at least {minEncounterLevel}");
+            }
+
             // Get valid abilities
-            sb.AppendLine("VALID ABILITIES:");
+            sb.AppendLine("\nVALID ABILITIES:");
             var abilities = GetValidAbilities(pi, gen);
             foreach (var ability in abilities)
                 sb.AppendLine($"- {ability}");
@@ -203,6 +233,8 @@ public partial class AIAnalysisForm : Form
             // Add specific move validation with level requirements
             sb.AppendLine("\nMOVE VALIDATION:");
             var movelist = GameInfo.Strings.movelist;
+            var minRequiredLevel = template.Level; // Track the minimum level needed
+
             for (int i = 0; i < template.Moves.Length; i++)
             {
                 var move = template.Moves[i];
@@ -223,6 +255,7 @@ public partial class AIAnalysisForm : Form
                         {
                             sb.AppendLine($"- {moveName}: INVALID at current level {template.Level} (learns at level {moveInfo.Level})");
                             sb.AppendLine($"  → Suggestion: Either increase Pokémon level to {moveInfo.Level}+ or replace the move");
+                            minRequiredLevel = (byte)Math.Max(minRequiredLevel, moveInfo.Level);
                         }
                     }
                     else
@@ -234,6 +267,20 @@ public partial class AIAnalysisForm : Form
                 {
                     sb.AppendLine($"- {moveName}: INVALID for this species/generation");
                 }
+            }
+
+            // Summary of minimum level requirement
+            var overallMinLevel = Math.Max(Math.Max(evolutionLevel, minEncounterLevel), minRequiredLevel);
+            if (overallMinLevel > template.Level)
+            {
+                sb.AppendLine($"\n** MINIMUM LEVEL REQUIREMENT: {overallMinLevel} **");
+                sb.AppendLine($"Current level {template.Level} is too low due to:");
+                if (evolutionLevel > template.Level)
+                    sb.AppendLine($"- Evolution requirement: Level {evolutionLevel}+");
+                if (minEncounterLevel > template.Level)
+                    sb.AppendLine($"- Encounter requirement: Level {minEncounterLevel}+");
+                if (minRequiredLevel > template.Level && minRequiredLevel > evolutionLevel && minRequiredLevel > minEncounterLevel)
+                    sb.AppendLine($"- Move requirement: Level {minRequiredLevel}+");
             }
 
             // Get valid balls
@@ -264,7 +311,89 @@ public partial class AIAnalysisForm : Form
         }
     }
 
-    private static List<string> GetValidAbilities(IPersonalInfo pi, int generation)
+    private static (int Level, string Info) GetEvolutionLevelRequirement(ushort species, byte form, GameVersion version)
+    {
+        try
+        {
+            // Get evolution string from the helper
+            var evoString = PokemonEvolutionHelper.GetEvolutionString(species, form, version);
+
+            // If it's empty, it's a base form with no evolutions
+            if (string.IsNullOrEmpty(evoString))
+                return (0, "Base form with no evolutions");
+
+            // Parse the evolution string to extract level
+            // Format could be "Ivysaur (16)" for what it evolves from
+            // or "Ivysaur (16), Venusaur (32)" for what it evolves into
+            var match = Regex.Match(evoString, @"\((\d+)\)");
+            if (match.Success && int.TryParse(match.Groups[1].Value, out int level))
+            {
+                return (level, evoString);
+            }
+
+            // If no level found, it might be a special evolution
+            return (0, $"Special evolution: {evoString}");
+        }
+        catch
+        {
+            return (0, "Unable to determine evolution requirements");
+        }
+    }
+
+    private static int GetMinimumEncounterLevel(ushort species, byte form, GameVersion version, SaveFile sav)
+    {
+        try
+        {
+            // Create a dummy PKM to get encounters
+            var blank = EntityBlank.GetBlank((byte)sav.Generation);
+            blank.Species = species;
+            blank.Form = form;
+
+            // Get all encounters
+            var la = new LegalityAnalysis(blank);
+            var encounters = EncounterGenerator.GetEncounters(blank, la.Info);
+
+            int minLevel = 100; // Start with max possible
+            bool foundEncounter = false;
+
+            foreach (var enc in encounters)
+            {
+                // Skip egg encounters
+                if (enc.IsEgg || enc is IEncounterEgg)
+                    continue;
+
+                // Get the minimum level for this encounter
+                int encMinLevel = enc.LevelMin;
+
+                // Check if it has a fixed level (some encounters might have LevelMin == LevelMax)
+                if (enc.LevelMin == enc.LevelMax && enc.LevelMin > 0)
+                {
+                    encMinLevel = enc.LevelMin;
+                }
+
+                if (encMinLevel < minLevel)
+                {
+                    minLevel = encMinLevel;
+                    foundEncounter = true;
+                }
+            }
+
+            // If no encounters found, check if it's evolution only
+            if (!foundEncounter)
+            {
+                // This species might only be obtainable through evolution
+                return 1; // Default to 1 if no wild encounters exist
+            }
+
+            return minLevel;
+        }
+        catch
+        {
+            return 1; // Default minimum level
+        }
+    }
+
+    private static List<string> GetValidAbilities(PersonalInfo pi, int generation)
     {
         var abilities = new List<string>();
         var strings = GameInfo.Strings;
