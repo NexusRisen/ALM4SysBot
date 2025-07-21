@@ -8,25 +8,15 @@ using System.Threading.Tasks;
 
 namespace AutoModPlugins.GUI;
 
-public class AIService
+public class AIService(string apiKey, string model, int maxTokens, double temperature)
 {
-    private readonly string _apiKey;
-    private readonly string _model;
-    private readonly int _maxTokens;
-    private readonly double _temperature;
-    private readonly HttpClient _httpClient;
+    private readonly string _apiKey = apiKey;
+    private readonly string _model = model;
+    private readonly int _maxTokens = maxTokens;
+    private readonly double _temperature = temperature;
+    private static readonly HttpClient _sharedHttpClient = new();
 
     private const string OpenAIEndpoint = "https://api.openai.com/v1/chat/completions";
-
-    public AIService(string apiKey, string model, int maxTokens, double temperature)
-    {
-        _apiKey = apiKey;
-        _model = model;
-        _maxTokens = maxTokens;
-        _temperature = temperature;
-        _httpClient = new HttpClient();
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-    }
 
     public Task<string> AnalyzeShowdownSetAsync(string showdownSet, string context)
     {
@@ -53,7 +43,7 @@ public class AIService
 
                                 IMPORTANT: Trust the PKHeX legality check - if it says the Pokémon is legal, then it IS legal!";
 
-                                            var userPrompt = $@"Analyze this Showdown set:
+            var userPrompt = $@"Analyze this Showdown set:
 
                                 Showdown Set:
                                 {showdownSet}
@@ -112,32 +102,65 @@ public class AIService
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(OpenAIEndpoint, content, cancellationToken);
+            using var request = new HttpRequestMessage(HttpMethod.Post, OpenAIEndpoint);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+            request.Content = content;
+
+            using var response = await _sharedHttpClient.SendAsync(request, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
+                var statusCode = (int)response.StatusCode;
+
+                if (statusCode == 401)
+                    throw new Exception("Invalid API key. Please check your OpenAI API key in settings.");
+                else if (statusCode == 429)
+                    throw new Exception("Rate limit exceeded. Please try again later.");
+                else if (statusCode >= 500)
+                    throw new Exception("OpenAI service is temporarily unavailable. Please try again later.");
+
                 throw new Exception($"OpenAI API error: {response.StatusCode} - {error}");
             }
 
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            var responseJson = JsonDocument.Parse(responseContent);
 
-            var aiResponse = responseJson.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
+            using var responseJson = JsonDocument.Parse(responseContent);
 
+            if (!responseJson.RootElement.TryGetProperty("choices", out var choices) ||
+                choices.GetArrayLength() == 0 ||
+                !choices[0].TryGetProperty("message", out var message) ||
+                !message.TryGetProperty("content", out var contentElement))
+            {
+                throw new Exception("Unexpected response format from OpenAI API.");
+            }
+
+            var aiResponse = contentElement.GetString();
             return aiResponse ?? "No response from AI.";
+        }
+        catch (TaskCanceledException ex) when (ex.CancellationToken == cancellationToken)
+        {
+            throw new OperationCanceledException("Analysis was cancelled.", ex, cancellationToken);
+        }
+        catch (TaskCanceledException)
+        {
+            return "Request timed out. Please try again.";
         }
         catch (OperationCanceledException)
         {
             throw;
         }
+        catch (HttpRequestException ex)
+        {
+            return $"Network error: {ex.Message}. Please check your internet connection.";
+        }
+        catch (JsonException)
+        {
+            return "Failed to parse API response. The service may be experiencing issues.";
+        }
         catch (Exception ex)
         {
-            return $"Error communicating with AI service: {ex.Message}";
+            return $"Error: {ex.Message}";
         }
     }
 }
