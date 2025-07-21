@@ -170,19 +170,27 @@ public partial class AIAnalysisForm : Form
 
         try
         {
-            // Get personal info
             var pi = sav.Personal.GetFormEntry(species, form);
             if (pi == null)
                 return "Unable to find species data.";
 
-            // Add evolution level requirements FIRST
-            sb.AppendLine("EVOLUTION REQUIREMENTS:");
+            // Game availability
+            sb.AppendLine("GAME AVAILABILITY:");
+            var availableGames = GetAvailableGames(species, form);
+            if (availableGames.Any())
+            {
+                sb.AppendLine($"- Available in: {string.Join(", ", availableGames)}");
+                if (!availableGames.Contains(version.ToString()))
+                    sb.AppendLine($"  → WARNING: Not available in {version}!");
+            }
+
+            // Evolution requirements
+            sb.AppendLine("\nEVOLUTION REQUIREMENTS:");
             var (evolutionLevel, evolutionInfo) = GetEvolutionLevelRequirement(species, form, version);
             if (evolutionLevel > 0)
             {
                 sb.AppendLine($"- Minimum level for this evolution: {evolutionLevel}");
                 sb.AppendLine($"  Evolution chain: {evolutionInfo}");
-
                 if (template.Level < evolutionLevel)
                 {
                     sb.AppendLine($"  → INVALID: Current level {template.Level} is too low!");
@@ -194,30 +202,47 @@ public partial class AIAnalysisForm : Form
                 sb.AppendLine("- This is a base form or special evolution (no level requirement)");
             }
 
-            // Add minimum encounter level
+            // Minimum encounter level
             sb.AppendLine("\nMINIMUM ENCOUNTER LEVEL:");
             var minEncounterLevel = GetMinimumEncounterLevel(species, form, version, sav);
             sb.AppendLine($"- Minimum wild/gift encounter level: {minEncounterLevel}");
-
             if (template.Level < minEncounterLevel)
             {
                 sb.AppendLine($"  → INVALID: Current level {template.Level} is below minimum encounter level!");
                 sb.AppendLine($"  → Suggestion: Set level to at least {minEncounterLevel}");
             }
 
-            // Get valid abilities
+            // Gender information
+            sb.AppendLine("\nGENDER INFORMATION:");
+            var genderInfo = GetGenderInfo(pi, species, form);
+            sb.AppendLine(genderInfo);
+            if (template.Gender.HasValue && !IsGenderValid(pi, template.Gender.Value))
+            {
+                sb.AppendLine($"  → INVALID: Gender {(template.Gender.Value == 0 ? "Male" : template.Gender.Value == 1 ? "Female" : "Genderless")} not valid for this species!");
+            }
+
+            // Shiny restrictions
+            sb.AppendLine("\nSHINY AVAILABILITY:");
+            var shinyInfo = GetShinyAvailability(species, form, version, gen);
+            sb.AppendLine(shinyInfo);
+            if (template.Shiny && SimpleEdits.IsShinyLockedSpeciesForm(species, form))
+            {
+                sb.AppendLine("  → INVALID: This Pokemon is shiny-locked!");
+                sb.AppendLine("  → Suggestion: Set shiny to false");
+            }
+
+            // Valid abilities
             sb.AppendLine("\nVALID ABILITIES:");
             var abilities = GetValidAbilities(pi, gen);
             foreach (var ability in abilities)
                 sb.AppendLine($"- {ability}");
 
-            // Get valid moves with level information
+            // Valid moves with levels
             sb.AppendLine("\nVALID MOVES WITH LEVELS:");
             var movesWithLevels = GetValidMovesWithLevels(species, form, gen, version);
             if (movesWithLevels.Count > 0)
             {
                 sb.AppendLine($"Total valid moves: {movesWithLevels.Count}");
-                // Show a sample of moves if there are many
                 var moveSample = movesWithLevels.Take(20).ToList();
                 foreach (var (move, level) in moveSample)
                 {
@@ -230,10 +255,10 @@ public partial class AIAnalysisForm : Form
                     sb.AppendLine($"... and {movesWithLevels.Count - 20} more moves");
             }
 
-            // Add specific move validation with level requirements
+            // Move validation
             sb.AppendLine("\nMOVE VALIDATION:");
             var movelist = GameInfo.Strings.movelist;
-            var minRequiredLevel = template.Level; // Track the minimum level needed
+            var minRequiredLevel = template.Level;
 
             for (int i = 0; i < template.Moves.Length; i++)
             {
@@ -269,7 +294,54 @@ public partial class AIAnalysisForm : Form
                 }
             }
 
-            // Summary of minimum level requirement
+            // Valid balls
+            sb.AppendLine("\nVALID BALLS:");
+            var validBalls = GetValidBalls(species, form, gen, version);
+            foreach (var ball in validBalls)
+                sb.AppendLine($"- {ball}");
+
+            // Encounter types
+            sb.AppendLine("\nVALID ENCOUNTER TYPES:");
+            var encounters = GetValidEncounterTypes(species, form, version);
+            foreach (var enc in encounters)
+                sb.AppendLine($"- {enc}");
+
+            // Egg groups for breeding
+            sb.AppendLine("\nEGG GROUPS:");
+            var eggGroups = GetEggGroups(pi);
+            sb.AppendLine($"- {eggGroups}");
+
+            // Held items restrictions
+            if (HasFormItemRestrictions(species))
+            {
+                sb.AppendLine("\nFORM-ITEM RESTRICTIONS:");
+                var itemRestrictions = GetFormItemRestrictions(species, form);
+                sb.AppendLine(itemRestrictions);
+            }
+
+            // Nature restrictions (for specific encounters like Toxtricity)
+            if (HasNatureRestrictions(species, form))
+            {
+                sb.AppendLine("\nNATURE RESTRICTIONS:");
+                var natureRestrictions = GetNatureRestrictions(species, form);
+                sb.AppendLine(natureRestrictions);
+            }
+
+            // Gigantamax availability
+            if (gen == 8 && Gigantamax.CanToggle(species, form, species, form))
+            {
+                sb.AppendLine("\nGIGANTAMAX:");
+                sb.AppendLine("- Can have Gigantamax factor");
+            }
+
+            // Alpha availability (Legends Arceus)
+            if (version == GameVersion.PLA)
+            {
+                sb.AppendLine("\nALPHA AVAILABILITY:");
+                sb.AppendLine("- Can be Alpha in Legends: Arceus");
+            }
+
+            // Overall minimum level requirement
             var overallMinLevel = Math.Max(Math.Max(evolutionLevel, minEncounterLevel), minRequiredLevel);
             if (overallMinLevel > template.Level)
             {
@@ -283,19 +355,7 @@ public partial class AIAnalysisForm : Form
                     sb.AppendLine($"- Move requirement: Level {minRequiredLevel}+");
             }
 
-            // Get valid balls
-            sb.AppendLine("\nVALID BALLS:");
-            var validBalls = GetValidBalls(species, form, gen, version);
-            foreach (var ball in validBalls)
-                sb.AppendLine($"- {ball}");
-
-            // Get encounter locations
-            sb.AppendLine("\nVALID ENCOUNTER TYPES:");
-            var encounters = GetValidEncounterTypes(species, form, version);
-            foreach (var enc in encounters)
-                sb.AppendLine($"- {enc}");
-
-            // Check if Hidden Ability is available
+            // Hidden Ability availability
             if (pi is IPersonalAbility12H pah && pah.AbilityH != 0)
             {
                 sb.AppendLine($"\nHIDDEN ABILITY: {GameInfo.Strings.abilitylist[pah.AbilityH]} - ");
@@ -309,6 +369,161 @@ public partial class AIAnalysisForm : Form
         {
             return $"Error getting valid data: {ex.Message}";
         }
+    }
+
+    private static List<string> GetAvailableGames(ushort species, byte form)
+    {
+        var games = new List<string>();
+
+        foreach (var version in GameUtil.GameVersions)
+        {
+            if (version.ExistsInGame(species, form))
+            {
+                games.Add(version.ToString());
+            }
+        }
+
+        return games;
+    }
+
+    private static string GetGenderInfo(PersonalInfo pi, ushort species, byte form)
+    {
+        var ratio = pi.Gender;
+        return ratio switch
+        {
+            PersonalInfo.RatioMagicGenderless => "- Genderless only",
+            PersonalInfo.RatioMagicFemale => "- Female only (100% female)",
+            PersonalInfo.RatioMagicMale => "- Male only (100% male)",
+            _ => $"- Gender ratio: {GetGenderRatioString(ratio)}"
+        };
+    }
+
+    private static string GetGenderRatioString(int ratio)
+    {
+        var femaleRatio = ratio / 255.0 * 100;
+        var maleRatio = 100 - femaleRatio;
+        return $"{maleRatio:F1}% male, {femaleRatio:F1}% female";
+    }
+
+    private static bool IsGenderValid(PersonalInfo pi, byte gender)
+    {
+        return pi.Gender switch
+        {
+            PersonalInfo.RatioMagicGenderless => gender == 2,
+            PersonalInfo.RatioMagicFemale => gender == 1,
+            PersonalInfo.RatioMagicMale => gender == 0,
+            _ => gender < 2
+        };
+    }
+
+    private static string GetShinyAvailability(ushort species, byte form, GameVersion version, int generation)
+    {
+        if (SimpleEdits.IsShinyLockedSpeciesForm(species, form))
+        {
+            return "- Shiny-locked (cannot be shiny)";
+        }
+
+        if (generation < 2)
+        {
+            return "- Shinies not available in Generation 1";
+        }
+
+        var restrictions = new List<string>();
+
+        // Check for specific shiny restrictions
+        switch ((Species)species)
+        {
+            case Species.Manaphy:
+                restrictions.Add("Special shiny mechanics (Ranger egg)");
+                break;
+            case Species.Toxtricity:
+                restrictions.Add("Shiny form depends on nature");
+                break;
+        }
+
+        // Check Mighty Raid gender locks
+        var mightyGender = SimpleEdits.GetMightyRaidGender(species, form);
+        if (mightyGender.HasValue)
+        {
+            var genderStr = mightyGender.Value switch
+            {
+                0 => "Male",
+                1 => "Female",
+                2 => "Genderless",
+                _ => "Unknown"
+            };
+            restrictions.Add($"Mighty Raid: Gender locked to {genderStr}");
+        }
+
+        if (restrictions.Any())
+        {
+            return $"- Can be shiny with restrictions:\n  {string.Join("\n  ", restrictions)}";
+        }
+
+        return "- Can be shiny";
+    }
+
+    private static string GetEggGroups(PersonalInfo pi)
+    {
+        var groups = new List<string>();
+
+        if (pi.EggGroup1 != 0)
+            groups.Add(((EggGroup)pi.EggGroup1).ToString());
+        if (pi.EggGroup2 != 0 && pi.EggGroup2 != pi.EggGroup1)
+            groups.Add(((EggGroup)pi.EggGroup2).ToString());
+
+        return groups.Any() ? string.Join(", ", groups) : "Cannot breed";
+    }
+
+    private static bool HasFormItemRestrictions(ushort species)
+    {
+        return species switch
+        {
+            (ushort)Species.Arceus => true,
+            (ushort)Species.Silvally => true,
+            (ushort)Species.Genesect => true,
+            (ushort)Species.Giratina => true,
+            (ushort)Species.Dialga => true,
+            (ushort)Species.Palkia => true,
+            (ushort)Species.Ogerpon => true,
+            _ => false
+        };
+    }
+
+    private static string GetFormItemRestrictions(ushort species, byte form)
+    {
+        return species switch
+        {
+            (ushort)Species.Arceus => form == 0 ? "- No item required for Normal form" : $"- Form {form} requires specific plate item",
+            (ushort)Species.Silvally => form == 0 ? "- No item required for Normal form" : $"- Form {form} requires Memory item",
+            (ushort)Species.Genesect => form == 0 ? "- No item required for base form" : $"- Form {form} requires Drive item",
+            (ushort)Species.Giratina => form == 1 ? "- Origin form requires Griseous Orb (Gen 4-7) or Griseous Core (Gen 8+)" : "- Altered form (no item required)",
+            (ushort)Species.Dialga => form == 1 ? "- Origin form requires Adamant Crystal" : "- Base form (no item required)",
+            (ushort)Species.Palkia => form == 1 ? "- Origin form requires Lustrous Globe" : "- Base form (no item required)",
+            (ushort)Species.Ogerpon => form == 0 ? "- Teal Mask form (no item required)" : "- Mask forms require specific mask items",
+            _ => "- No specific item restrictions"
+        };
+    }
+
+    private static bool HasNatureRestrictions(ushort species, byte form)
+    {
+        return species == (ushort)Species.Toxtricity;
+    }
+
+    private static string GetNatureRestrictions(ushort species, byte form)
+    {
+        if (species == (ushort)Species.Toxtricity)
+        {
+            if (form == 0)
+            {
+                return "- Amped form requires: Adamant, Brave, Docile, Hardy, Hasty, Impish, Jolly, Lax, Naive, Naughty, Quirky, Rash, or Sassy nature";
+            }
+            else
+            {
+                return "- Low Key form requires: Bashful, Bold, Calm, Careful, Gentle, Lonely, Mild, Modest, Quiet, Relaxed, Serious, or Timid nature";
+            }
+        }
+        return "- No nature restrictions";
     }
 
     private static (int Level, string Info) GetEvolutionLevelRequirement(ushort species, byte form, GameVersion version)
