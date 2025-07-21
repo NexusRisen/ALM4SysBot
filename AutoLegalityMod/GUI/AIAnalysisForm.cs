@@ -16,6 +16,7 @@ public partial class AIAnalysisForm : Form
     private readonly AIService _aiService;
     private readonly AnalysisContextBuilder _contextBuilder;
     private CancellationTokenSource? _analysisCts;
+    private string? _lastCorrectedSet;
 
     public AIAnalysisForm(PluginSettings settings, SaveFile sav)
     {
@@ -99,6 +100,7 @@ public partial class AIAnalysisForm : Form
     private void DisplayFormattedResponse(string aiResponse, bool isLegal, LegalizationResult status)
     {
         TB_Output.Clear();
+        _lastCorrectedSet = null;
 
         var isDarkTheme = TextFormattingHelper.IsDarkTheme(TB_Output.BackColor == SystemColors.Window ? this.BackColor : TB_Output.BackColor);
 
@@ -125,6 +127,10 @@ public partial class AIAnalysisForm : Form
         TB_Output.AppendText(new string('═', 60) + "\r\n\r\n");
 
         TB_Output.SelectionFont = new Font(TB_Output.Font.FontFamily, 9, FontStyle.Regular);
+
+        // Extract corrected showdown set if present
+        _lastCorrectedSet = ExtractCorrectedSet(aiResponse);
+        B_ImportFix.Visible = !isSuccess && !string.IsNullOrWhiteSpace(_lastCorrectedSet);
 
         var sections = TextFormattingHelper.SplitIntoSections(aiResponse);
 
@@ -162,6 +168,8 @@ public partial class AIAnalysisForm : Form
         {
             TB_Input.Clear();
             TB_Output.Clear();
+            _lastCorrectedSet = null;
+            B_ImportFix.Visible = false;
         }
     }
 
@@ -172,6 +180,75 @@ public partial class AIAnalysisForm : Form
             TB_Output.SelectAll();
             TB_Output.Copy();
             WinFormsUtil.Alert("Analysis copied to clipboard!");
+        }
+    }
+
+    private static string? ExtractCorrectedSet(string aiResponse)
+    {
+        var correctedSetMarkers = new[] { "== CORRECTED SHOWDOWN SET ==", "CORRECTED SHOWDOWN SET:", "Corrected Set:" };
+
+        foreach (var marker in correctedSetMarkers)
+        {
+            var markerIndex = aiResponse.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex == -1) continue;
+
+            var startIndex = markerIndex + marker.Length;
+            var remainingText = aiResponse.Substring(startIndex).Trim();
+
+            var lines = remainingText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var setLines = new System.Collections.Generic.List<string>();
+            bool inSet = false;
+
+            foreach (var line in lines)
+            {
+                var trimmedLine = line.Trim();
+
+                if (trimmedLine.Contains(" @ ") ||
+                    (inSet && (trimmedLine.StartsWith("-") ||
+                              trimmedLine.StartsWith("Level:") ||
+                              trimmedLine.StartsWith("Ability:") ||
+                              trimmedLine.StartsWith("EVs:") ||
+                              trimmedLine.StartsWith("IVs:") ||
+                              trimmedLine.Contains("Nature"))))
+                {
+                    inSet = true;
+                    setLines.Add(trimmedLine);
+                }
+                else if (inSet && trimmedLine.StartsWith("=="))
+                {
+                    break;
+                }
+                else if (inSet && string.IsNullOrWhiteSpace(trimmedLine) && setLines.Count > 2)
+                {
+                    break;
+                }
+            }
+
+            if (setLines.Count > 0)
+            {
+                return string.Join(Environment.NewLine, setLines);
+            }
+        }
+
+        return null;
+    }
+
+    private void B_ImportFix_Click(object sender, EventArgs e)
+    {
+        if (string.IsNullOrWhiteSpace(_lastCorrectedSet))
+        {
+            WinFormsUtil.Alert("No corrected set found in the analysis.");
+            return;
+        }
+
+        var result = WinFormsUtil.Prompt(MessageBoxButtons.YesNo,
+            "Replace current input with the AI-suggested corrected set?",
+            "Import Corrected Set");
+
+        if (result == DialogResult.Yes)
+        {
+            TB_Input.Text = _lastCorrectedSet;
+            WinFormsUtil.Alert("Corrected set imported! You can now analyze it again to verify it's legal.");
         }
     }
 }

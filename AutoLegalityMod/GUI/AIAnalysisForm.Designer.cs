@@ -11,6 +11,7 @@ namespace AutoModPlugins.GUI
         private System.Windows.Forms.Label L_Output;
         private System.Windows.Forms.SplitContainer splitContainer;
         private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.Button B_ImportFix;
 
         private void InitializeComponent()
         {
@@ -23,6 +24,7 @@ namespace AutoModPlugins.GUI
             this.L_Output = new System.Windows.Forms.Label();
             this.splitContainer = new System.Windows.Forms.SplitContainer();
             this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.B_ImportFix = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer)).BeginInit();
             this.splitContainer.Panel1.SuspendLayout();
             this.splitContainer.Panel2.SuspendLayout();
@@ -139,6 +141,18 @@ namespace AutoModPlugins.GUI
             this.progressBar.TabIndex = 8;
             this.progressBar.Visible = false;
             // 
+            // B_ImportFix
+            // 
+            this.B_ImportFix.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.B_ImportFix.Location = new System.Drawing.Point(616, 415);
+            this.B_ImportFix.Name = "B_ImportFix";
+            this.B_ImportFix.Size = new System.Drawing.Size(75, 30);
+            this.B_ImportFix.TabIndex = 9;
+            this.B_ImportFix.Text = "Import Fix";
+            this.B_ImportFix.UseVisualStyleBackColor = true;
+            this.B_ImportFix.Visible = false;
+            this.B_ImportFix.Click += new System.EventHandler(this.B_ImportFix_Click);
+            // 
             // AIAnalysisForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -146,6 +160,7 @@ namespace AutoModPlugins.GUI
             this.ClientSize = new System.Drawing.Size(784, 461);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.splitContainer);
+            this.Controls.Add(this.B_ImportFix);
             this.Controls.Add(this.B_Copy);
             this.Controls.Add(this.B_Clear);
             this.Controls.Add(this.B_Analyze);
