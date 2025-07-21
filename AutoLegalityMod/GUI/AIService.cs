@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AutoModPlugins.GUI;
@@ -27,7 +28,12 @@ public class AIService
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
     }
 
-    public async Task<string> AnalyzeShowdownSetAsync(string showdownSet, string context)
+    public Task<string> AnalyzeShowdownSetAsync(string showdownSet, string context)
+    {
+        return AnalyzeShowdownSetAsync(showdownSet, context, CancellationToken.None);
+    }
+
+    public async Task<string> AnalyzeShowdownSetAsync(string showdownSet, string context, CancellationToken cancellationToken)
     {
         try
         {
@@ -106,15 +112,15 @@ public class AIService
             var json = JsonSerializer.Serialize(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync(OpenAIEndpoint, content);
+            var response = await _httpClient.PostAsync(OpenAIEndpoint, content, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
             {
-                var error = await response.Content.ReadAsStringAsync();
+                var error = await response.Content.ReadAsStringAsync(cancellationToken);
                 throw new Exception($"OpenAI API error: {response.StatusCode} - {error}");
             }
 
-            var responseContent = await response.Content.ReadAsStringAsync();
+            var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             var responseJson = JsonDocument.Parse(responseContent);
 
             var aiResponse = responseJson.RootElement
@@ -125,14 +131,13 @@ public class AIService
 
             return aiResponse ?? "No response from AI.";
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return $"Error communicating with AI service: {ex.Message}";
         }
-    }
-
-    public void Dispose()
-    {
-        _httpClient?.Dispose();
     }
 }

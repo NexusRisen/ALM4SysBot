@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 using PKHeX.Core;
 using PKHeX.Core.AutoMod;
@@ -18,6 +18,7 @@ public partial class AIAnalysisForm : Form
     private readonly PluginSettings _settings;
     private readonly SaveFile _sav;
     private readonly AIService _aiService;
+    private CancellationTokenSource? _analysisCts;
 
     public AIAnalysisForm(PluginSettings settings, SaveFile sav)
     {
@@ -43,7 +44,12 @@ public partial class AIAnalysisForm : Form
             return;
         }
 
+        _analysisCts?.Cancel();
+        _analysisCts?.Dispose();
+        _analysisCts = new CancellationTokenSource();
+
         B_Analyze.Enabled = false;
+        B_Clear.Text = "Cancel";
         TB_Output.Text = "Analyzing...";
         progressBar.Visible = true;
 
@@ -84,7 +90,7 @@ public partial class AIAnalysisForm : Form
             var context = BuildAnalysisContext(template, almres, la, legalityReport, timeInfo, targetVersion);
 
             // Get AI analysis
-            var aiResponse = await _aiService.AnalyzeShowdownSetAsync(input, context);
+            var aiResponse = await _aiService.AnalyzeShowdownSetAsync(input, context, _analysisCts.Token);
 
             // Display result with formatting
             DisplayFormattedResponse(aiResponse, la.Valid, almres.Status);
@@ -96,7 +102,10 @@ public partial class AIAnalysisForm : Form
         finally
         {
             B_Analyze.Enabled = true;
+            B_Clear.Text = "Clear";
             progressBar.Visible = false;
+            _analysisCts?.Dispose();
+            _analysisCts = null;
         }
     }
 
@@ -580,8 +589,15 @@ public partial class AIAnalysisForm : Form
 
     private void B_Clear_Click(object sender, EventArgs e)
     {
-        TB_Input.Clear();
-        TB_Output.Clear();
+        if (B_Clear.Text == "Cancel")
+        {
+            _analysisCts?.Cancel();
+        }
+        else
+        {
+            TB_Input.Clear();
+            TB_Output.Clear();
+        }
     }
 
     private void B_Copy_Click(object sender, EventArgs e)

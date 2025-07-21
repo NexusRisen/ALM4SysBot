@@ -13,15 +13,6 @@ namespace AutoModPlugins.GUI
         private System.Windows.Forms.SplitContainer splitContainer;
         private System.Windows.Forms.ProgressBar progressBar;
 
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
         private void InitializeComponent()
         {
             this.TB_Input = new System.Windows.Forms.TextBox();
