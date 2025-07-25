@@ -10,6 +10,9 @@ using PKHeX.Core;
 
 namespace AutoModPlugins.GUI;
 
+/// <summary>
+/// Form for finding Generation 9 Tera Raid seeds that match specific criteria.
+/// </summary>
 public partial class Gen9SeedFinderForm : Form
 {
     private readonly ISaveFileProvider _saveFileEditor;
@@ -20,6 +23,11 @@ public partial class Gen9SeedFinderForm : Form
 
     private const int SearchProgressInterval = 1000;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Gen9SeedFinderForm"/> class.
+    /// </summary>
+    /// <param name="saveFileEditor">Save file provider for trainer information.</param>
+    /// <param name="pkmEditor">PKM editor for displaying results.</param>
     public Gen9SeedFinderForm(ISaveFileProvider saveFileEditor, IPKMView pkmEditor)
     {
         _saveFileEditor = saveFileEditor ?? throw new ArgumentNullException(nameof(saveFileEditor));
@@ -31,6 +39,9 @@ public partial class Gen9SeedFinderForm : Form
         FormClosed += (s, e) => _searchCts?.Dispose();
     }
 
+    /// <summary>
+    /// Loads the species list with only species present in Scarlet/Violet.
+    /// </summary>
     private void LoadSpeciesList()
     {
         var species = new List<ComboItem>();
@@ -56,6 +67,10 @@ public partial class Gen9SeedFinderForm : Form
         UpdateEncounterList(species);
     }
 
+    /// <summary>
+    /// Updates the form list for the selected species.
+    /// </summary>
+    /// <param name="species">Species ID.</param>
     private void UpdateFormList(int species)
     {
         var forms = FormConverter.GetFormList(
@@ -71,6 +86,10 @@ public partial class Gen9SeedFinderForm : Form
         formCombo.DataSource = forms.Select((f, i) => new ComboItem(f, i)).ToList();
     }
 
+    /// <summary>
+    /// Updates the encounter list for the selected species.
+    /// </summary>
+    /// <param name="species">Species ID.</param>
     private void UpdateEncounterList(int species)
     {
         var encounters = new List<ITeraRaid9>();
@@ -89,6 +108,13 @@ public partial class Gen9SeedFinderForm : Form
         encounterCombo.DataSource = items;
     }
 
+    /// <summary>
+    /// Gets encounters for a specific species from an encounter array.
+    /// </summary>
+    /// <typeparam name="T">Encounter type implementing ITeraRaid9.</typeparam>
+    /// <param name="encounters">Array of encounters to filter.</param>
+    /// <param name="species">Species ID to filter by.</param>
+    /// <returns>List of encounters matching the species.</returns>
     private static List<T> GetEncountersForSpecies<T>(T[] encounters, int species) where T : ITeraRaid9
     {
         return encounters.Where(e => e.Species == species).ToList();
@@ -111,12 +137,19 @@ public partial class Gen9SeedFinderForm : Form
         await StartSearchAsync(species);
     }
 
+    /// <summary>
+    /// Cancels the current search operation.
+    /// </summary>
     private async Task CancelSearchAsync()
     {
         _searchCts?.Cancel();
         await Task.Delay(100);
     }
 
+    /// <summary>
+    /// Starts the seed search operation.
+    /// </summary>
+    /// <param name="species">Species ID to search for.</param>
     private async Task StartSearchAsync(int species)
     {
         var form = (byte)(formCombo.SelectedValue as int? ?? 0);
@@ -146,6 +179,9 @@ public partial class Gen9SeedFinderForm : Form
         }
     }
 
+    /// <summary>
+    /// Prepares the UI for search operation.
+    /// </summary>
     private void PrepareSearch()
     {
         _results.Clear();
@@ -156,6 +192,9 @@ public partial class Gen9SeedFinderForm : Form
         statusLabel.Text = "Searching...";
     }
 
+    /// <summary>
+    /// Cleans up after search operation.
+    /// </summary>
     private void CleanupSearch()
     {
         searchButton.Text = "Search";
@@ -164,6 +203,10 @@ public partial class Gen9SeedFinderForm : Form
         _searchCts = null;
     }
 
+    /// <summary>
+    /// Gets the search criteria from the form controls.
+    /// </summary>
+    /// <returns>Encounter criteria based on user selections.</returns>
     private EncounterCriteria GetCriteria()
     {
         var criteria = new EncounterCriteria
@@ -184,6 +227,10 @@ public partial class Gen9SeedFinderForm : Form
         return criteria;
     }
 
+    /// <summary>
+    /// Gets the ability permission based on combo box selection.
+    /// </summary>
+    /// <returns>Ability permission value.</returns>
     private AbilityPermission GetAbilityPermission()
     {
         return abilityCombo.SelectedIndex switch
@@ -197,6 +244,14 @@ public partial class Gen9SeedFinderForm : Form
         };
     }
 
+    /// <summary>
+    /// Searches for seeds that match the criteria.
+    /// </summary>
+    /// <param name="species">Species ID to search for.</param>
+    /// <param name="form">Form number.</param>
+    /// <param name="criteria">Search criteria.</param>
+    /// <param name="specificEncounter">Specific encounter to use, or null for any.</param>
+    /// <param name="token">Cancellation token.</param>
     private void SearchSeeds(int species, byte form, EncounterCriteria criteria, ITeraRaid9? specificEncounter, CancellationToken token)
     {
         var maxSeeds = (int)maxSeedsNum.Value;
@@ -214,6 +269,14 @@ public partial class Gen9SeedFinderForm : Form
 
             var encounter = specificEncounter ?? FindMatchingEncounter(seed, species, form);
             if (encounter == null)
+                continue;
+
+            // Skip encounters that can never be shiny if we're looking for shinies
+            if (criteria.Shiny.IsShiny() && encounter.Shiny == Shiny.Never)
+                continue;
+
+            // Quick check if this seed can produce a shiny before full generation
+            if (criteria.Shiny.IsShiny() && !CanSeedProduceShiny(seed, encounter))
                 continue;
 
             var pk = GeneratePokemon(encounter, seed, criteria);
@@ -234,6 +297,58 @@ public partial class Gen9SeedFinderForm : Form
         UpdateFinalStatus(seedsChecked);
     }
 
+    /// <summary>
+    /// Checks if a seed can potentially produce a shiny Pokémon.
+    /// </summary>
+    /// <param name="seed">Seed to check.</param>
+    /// <param name="encounter">Encounter to check against.</param>
+    /// <returns>True if the seed can produce a shiny.</returns>
+    private bool CanSeedProduceShiny(uint seed, ITeraRaid9 encounter)
+    {
+        if (encounter.Shiny == Shiny.Never)
+            return false;
+
+        if (encounter.Shiny == Shiny.Always)
+            return true;
+
+        var rollCount = GetRollCount(encounter.Stars);
+        var rand = new Xoroshiro128Plus(seed);
+        _ = rand.NextInt(uint.MaxValue); // EC
+        var fakeTID = (uint)rand.NextInt();
+
+        for (int i = 0; i < rollCount; i++)
+        {
+            var pid = (uint)rand.NextInt();
+            if (ShinyUtil.GetShinyXor(pid, fakeTID) < 16)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the number of shiny rolls based on star rating.
+    /// </summary>
+    /// <param name="stars">Star rating of the raid.</param>
+    /// <returns>Number of shiny rolls.</returns>
+    private static byte GetRollCount(byte stars)
+    {
+        return stars switch
+        {
+            1 or 2 => 1,
+            3 or 4 => 2,
+            5 => 3,
+            6 or 7 => 4,
+            _ => 1
+        };
+    }
+
+    /// <summary>
+    /// Updates the progress during search.
+    /// </summary>
+    /// <param name="seedsChecked">Number of seeds checked.</param>
+    /// <param name="foundCount">Number of matches found.</param>
+    /// <param name="maxSeeds">Maximum seeds to find.</param>
     private void UpdateProgress(int seedsChecked, int foundCount, int maxSeeds)
     {
         if (InvokeRequired)
@@ -246,6 +361,10 @@ public partial class Gen9SeedFinderForm : Form
         statusLabel.Text = $"Checked {seedsChecked:N0} seeds, found {foundCount}";
     }
 
+    /// <summary>
+    /// Updates the final status after search completion.
+    /// </summary>
+    /// <param name="seedsChecked">Total number of seeds checked.</param>
     private void UpdateFinalStatus(int seedsChecked)
     {
         if (InvokeRequired)
@@ -258,6 +377,12 @@ public partial class Gen9SeedFinderForm : Form
         progressBar.Value = 100;
     }
 
+    /// <summary>
+    /// Checks if a Pokémon matches the search criteria.
+    /// </summary>
+    /// <param name="pk">Pokémon to check.</param>
+    /// <param name="criteria">Criteria to match against.</param>
+    /// <returns>True if the Pokémon matches all criteria.</returns>
     private static bool MatchesCriteria(PK9 pk, EncounterCriteria criteria)
     {
         bool matchesShiny = criteria.Shiny switch
@@ -281,6 +406,12 @@ public partial class Gen9SeedFinderForm : Form
         return CheckIVsCriteria(pk, criteria);
     }
 
+    /// <summary>
+    /// Checks if a Pokémon's IVs match the criteria.
+    /// </summary>
+    /// <param name="pk">Pokémon to check.</param>
+    /// <param name="criteria">Criteria with IV requirements.</param>
+    /// <returns>True if IVs match or exceed criteria.</returns>
     private static bool CheckIVsCriteria(PK9 pk, EncounterCriteria criteria)
     {
         return (criteria.IV_HP == -1 || pk.IV_HP >= criteria.IV_HP) &&
@@ -291,6 +422,13 @@ public partial class Gen9SeedFinderForm : Form
                (criteria.IV_SPE == -1 || pk.IV_SPE >= criteria.IV_SPE);
     }
 
+    /// <summary>
+    /// Finds a matching encounter for the given seed and species.
+    /// </summary>
+    /// <param name="seed">Seed to check.</param>
+    /// <param name="species">Species ID.</param>
+    /// <param name="form">Form number.</param>
+    /// <returns>First matching encounter, or null if none found.</returns>
     private static ITeraRaid9? FindMatchingEncounter(uint seed, int species, byte form)
     {
         var allEncounters = new List<ITeraRaid9>();
@@ -305,11 +443,26 @@ public partial class Gen9SeedFinderForm : Form
         return allEncounters.FirstOrDefault(e => e.CanBeEncountered(seed));
     }
 
+    /// <summary>
+    /// Filters encounters by species and form.
+    /// </summary>
+    /// <typeparam name="T">Encounter type.</typeparam>
+    /// <param name="encounters">Encounters to filter.</param>
+    /// <param name="species">Species ID.</param>
+    /// <param name="form">Form number.</param>
+    /// <returns>Filtered encounters.</returns>
     private static IEnumerable<T> FilterEncounters<T>(T[] encounters, int species, byte form) where T : ITeraRaid9
     {
         return encounters.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic));
     }
 
+    /// <summary>
+    /// Generates a Pokémon from an encounter and seed.
+    /// </summary>
+    /// <param name="encounter">Encounter template.</param>
+    /// <param name="seed">Seed for RNG.</param>
+    /// <param name="criteria">Generation criteria.</param>
+    /// <returns>Generated Pokémon, or null if generation fails.</returns>
     private PK9? GeneratePokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria)
     {
         if (!encounter.CanBeEncountered(seed))
@@ -338,17 +491,23 @@ public partial class Gen9SeedFinderForm : Form
         pk.OriginalTrainerFriendship = pi.BaseFriendship;
         pk.Nickname = SpeciesName.GetSpeciesNameGeneration(encounter.Species, language, 9);
 
+        // Determine roll count based on star rating
+        byte rollCount = GetRollCount(encounter.Stars);
+
+        // Use criteria shiny if specified, otherwise use encounter shiny
+        var shinyToUse = criteria.Shiny != Shiny.Random ? criteria.Shiny : encounter.Shiny;
+
         var param = new GenerateParam9(
             encounter.Species,
             pi.Gender,
             encounter.FlawlessIVCount,
-            1,
+            rollCount,
             0,
             0,
             SizeType9.RANDOM,
             0,
             encounter.Ability,
-            encounter.Shiny,
+            shinyToUse,
             encounter is IFixedNature fn ? fn.Nature : Nature.Random,
             encounter is EncounterDist9 dist && dist.IVs.IsSpecified ? dist.IVs : default
         );
@@ -370,6 +529,10 @@ public partial class Gen9SeedFinderForm : Form
         return pk;
     }
 
+    /// <summary>
+    /// Adds a result to the results grid.
+    /// </summary>
+    /// <param name="result">Result to add.</param>
     private void AddResultToGrid(SeedResult result)
     {
         if (InvokeRequired)
@@ -392,6 +555,11 @@ public partial class Gen9SeedFinderForm : Form
             resultsGrid.Rows[row].DefaultCellStyle.BackColor = Color.LightYellow;
     }
 
+    /// <summary>
+    /// Gets the ability name for a Pokémon.
+    /// </summary>
+    /// <param name="pk">Pokémon to get ability name for.</param>
+    /// <returns>Ability name string.</returns>
     private static string GetAbilityName(PK9 pk)
     {
         var abilities = PersonalTable.SV[pk.Species, pk.Form];
@@ -404,6 +572,11 @@ public partial class Gen9SeedFinderForm : Form
         };
     }
 
+    /// <summary>
+    /// Gets a formatted IV string.
+    /// </summary>
+    /// <param name="pk">Pokémon to get IVs from.</param>
+    /// <returns>Formatted IV string.</returns>
     private static string GetIVString(PK9 pk)
     {
         return $"{pk.IV_HP}/{pk.IV_ATK}/{pk.IV_DEF}/{pk.IV_SPA}/{pk.IV_SPD}/{pk.IV_SPE}";
@@ -448,6 +621,10 @@ public partial class Gen9SeedFinderForm : Form
         }
     }
 
+    /// <summary>
+    /// Exports results to a CSV file.
+    /// </summary>
+    /// <param name="filename">File path to export to.</param>
     private void ExportResults(string filename)
     {
         using var writer = new StreamWriter(filename);
@@ -467,24 +644,49 @@ public partial class Gen9SeedFinderForm : Form
         }
     }
 
+    /// <summary>
+    /// Represents a seed search result.
+    /// </summary>
     private sealed class SeedResult
     {
+        /// <summary>
+        /// The seed that generated this result.
+        /// </summary>
         public required uint Seed { get; init; }
+
+        /// <summary>
+        /// The encounter template used.
+        /// </summary>
         public required ITeraRaid9 Encounter { get; init; }
+
+        /// <summary>
+        /// The generated Pokémon.
+        /// </summary>
         public required PK9 Pokemon { get; init; }
     }
 
+    /// <summary>
+    /// Wrapper for combo box items.
+    /// </summary>
     private sealed class ComboItem(string text, int value)
     {
         public string Text { get; } = text;
         public int Value { get; } = value;
     }
 
+    /// <summary>
+    /// Wrapper for encounter combo box items.
+    /// </summary>
     private sealed class EncounterItem(ITeraRaid9? encounter)
     {
         public string Text { get; } = encounter == null ? "Any Encounter" : $"{encounter.Stars}★ {GetEncounterType(encounter)}";
         public ITeraRaid9? Value { get; } = encounter;
 
+        /// <summary>
+        /// Gets a descriptive string for the encounter type.
+        /// </summary>
+        /// <param name="encounter">Encounter to describe.</param>
+        /// <returns>Encounter type description.</returns>
         private static string GetEncounterType(ITeraRaid9 encounter)
         {
             return encounter switch
