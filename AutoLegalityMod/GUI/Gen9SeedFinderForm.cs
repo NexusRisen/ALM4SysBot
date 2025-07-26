@@ -861,7 +861,7 @@ public partial class Gen9SeedFinderForm : Form
             }
 
             // Generate a Pokemon from this seed
-            var pk = GenerateRaidPokemon(encounter, seed, criteria);
+            var pk = GenerateRaidPokemon(encounter, seed, criteria, form);
             if (pk == null)
                 continue;
 
@@ -1005,7 +1005,7 @@ public partial class Gen9SeedFinderForm : Form
     /// <summary>
     /// Generates a Pokemon from the encounter and seed using the exact raid generation method
     /// </summary>
-    private PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria)
+    private PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria, byte desiredForm)
     {
         var pi = PersonalTable.SV[encounter.Species, encounter.Form];
 
@@ -1063,7 +1063,7 @@ public partial class Gen9SeedFinderForm : Form
         var pk = new PK9
         {
             Species = encounter.Species,
-            Form = encounter.Form < EncounterUtil.FormDynamic ? encounter.Form : (byte)0,
+            Form = encounter.Form < EncounterUtil.FormDynamic ? encounter.Form : desiredForm,
             CurrentLevel = encounter.LevelMin,
             MetLocation = Locations.TeraCavern9,
             MetLevel = encounter.LevelMin,
