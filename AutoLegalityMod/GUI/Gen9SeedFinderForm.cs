@@ -9,6 +9,11 @@ using PKHeX.Core;
 using PKHeX.Core.AutoMod;
 
 namespace AutoModPlugins.GUI;
+/// <summary>
+/// Gen 9 Seed Finder Plugin for PKHeX
+/// </summary>
+/// <author>hexbyt3</author>
+/// <description>Tool for searching Generation 9 Tera Raid seeds that match specific criteria</description>
 
 /// <summary>
 /// Form for searching Generation 9 Tera Raid seeds that match specific criteria
@@ -18,7 +23,7 @@ public partial class Gen9SeedFinderForm : Form
     private readonly ISaveFileProvider _saveFileEditor;
     private readonly IPKMView _pkmEditor;
     private CancellationTokenSource? _searchCts;
-    private List<SeedResult> _results = new();
+    private List<SeedResult> _results = [];
 
     /// <summary>
     /// Initializes a new instance of the Gen9SeedFinderForm
