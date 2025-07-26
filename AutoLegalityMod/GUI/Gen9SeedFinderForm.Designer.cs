@@ -22,6 +22,8 @@ namespace AutoModPlugins.GUI
             // Search Panel
             this.searchPanel = new System.Windows.Forms.Panel();
             this.speciesGroup = new System.Windows.Forms.GroupBox();
+            this.speciesSearchLabel = new System.Windows.Forms.Label();
+            this.speciesSearchBox = new System.Windows.Forms.TextBox();
             this.speciesLabel = new System.Windows.Forms.Label();
             this.speciesCombo = new System.Windows.Forms.ComboBox();
             this.formLabel = new System.Windows.Forms.Label();
@@ -145,6 +147,8 @@ namespace AutoModPlugins.GUI
             this.searchPanel.TabIndex = 0;
 
             // speciesGroup
+            this.speciesGroup.Controls.Add(this.speciesSearchBox);
+            this.speciesGroup.Controls.Add(this.speciesSearchLabel);
             this.speciesGroup.Controls.Add(this.encounterCombo);
             this.speciesGroup.Controls.Add(this.encounterLabel);
             this.speciesGroup.Controls.Add(this.formCombo);
@@ -153,59 +157,75 @@ namespace AutoModPlugins.GUI
             this.speciesGroup.Controls.Add(this.speciesLabel);
             this.speciesGroup.Location = new System.Drawing.Point(8, 8);
             this.speciesGroup.Name = "speciesGroup";
-            this.speciesGroup.Size = new System.Drawing.Size(330, 120);
+            this.speciesGroup.Size = new System.Drawing.Size(330, 150);
             this.speciesGroup.TabIndex = 0;
             this.speciesGroup.TabStop = false;
             this.speciesGroup.Text = "Target Pokémon";
 
+            // speciesSearchLabel
+            this.speciesSearchLabel.AutoSize = true;
+            this.speciesSearchLabel.Location = new System.Drawing.Point(10, 25);
+            this.speciesSearchLabel.Name = "speciesSearchLabel";
+            this.speciesSearchLabel.Size = new System.Drawing.Size(45, 15);
+            this.speciesSearchLabel.TabIndex = 0;
+            this.speciesSearchLabel.Text = "Search:";
+
+            // speciesSearchBox
+            this.speciesSearchBox.Location = new System.Drawing.Point(80, 22);
+            this.speciesSearchBox.Name = "speciesSearchBox";
+            this.speciesSearchBox.Size = new System.Drawing.Size(240, 23);
+            this.speciesSearchBox.TabIndex = 1;
+            this.speciesSearchBox.PlaceholderText = "Type to search Pokémon...";
+            this.speciesSearchBox.TextChanged += new System.EventHandler(this.SpeciesSearchBox_TextChanged);
+
             // speciesLabel
             this.speciesLabel.AutoSize = true;
-            this.speciesLabel.Location = new System.Drawing.Point(10, 25);
+            this.speciesLabel.Location = new System.Drawing.Point(10, 55);
             this.speciesLabel.Name = "speciesLabel";
             this.speciesLabel.Size = new System.Drawing.Size(49, 15);
-            this.speciesLabel.TabIndex = 0;
+            this.speciesLabel.TabIndex = 2;
             this.speciesLabel.Text = "Species:";
 
             // speciesCombo
             this.speciesCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.speciesCombo.FormattingEnabled = true;
-            this.speciesCombo.Location = new System.Drawing.Point(80, 22);
+            this.speciesCombo.Location = new System.Drawing.Point(80, 52);
             this.speciesCombo.Name = "speciesCombo";
             this.speciesCombo.Size = new System.Drawing.Size(240, 23);
-            this.speciesCombo.TabIndex = 1;
+            this.speciesCombo.TabIndex = 3;
             this.speciesCombo.SelectedIndexChanged += new System.EventHandler(this.SpeciesCombo_SelectedIndexChanged);
 
             // formLabel
             this.formLabel.AutoSize = true;
-            this.formLabel.Location = new System.Drawing.Point(10, 55);
+            this.formLabel.Location = new System.Drawing.Point(10, 85);
             this.formLabel.Name = "formLabel";
             this.formLabel.Size = new System.Drawing.Size(38, 15);
-            this.formLabel.TabIndex = 2;
+            this.formLabel.TabIndex = 4;
             this.formLabel.Text = "Form:";
 
             // formCombo
             this.formCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.formCombo.FormattingEnabled = true;
-            this.formCombo.Location = new System.Drawing.Point(80, 52);
+            this.formCombo.Location = new System.Drawing.Point(80, 82);
             this.formCombo.Name = "formCombo";
             this.formCombo.Size = new System.Drawing.Size(240, 23);
-            this.formCombo.TabIndex = 3;
+            this.formCombo.TabIndex = 5;
 
             // encounterLabel
             this.encounterLabel.AutoSize = true;
-            this.encounterLabel.Location = new System.Drawing.Point(10, 85);
+            this.encounterLabel.Location = new System.Drawing.Point(10, 115);
             this.encounterLabel.Name = "encounterLabel";
             this.encounterLabel.Size = new System.Drawing.Size(64, 15);
-            this.encounterLabel.TabIndex = 4;
+            this.encounterLabel.TabIndex = 6;
             this.encounterLabel.Text = "Encounter:";
 
             // encounterCombo
             this.encounterCombo.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.encounterCombo.FormattingEnabled = true;
-            this.encounterCombo.Location = new System.Drawing.Point(80, 82);
+            this.encounterCombo.Location = new System.Drawing.Point(80, 112);
             this.encounterCombo.Name = "encounterCombo";
             this.encounterCombo.Size = new System.Drawing.Size(240, 23);
-            this.encounterCombo.TabIndex = 5;
+            this.encounterCombo.TabIndex = 7;
 
             // criteriaGroup
             this.criteriaGroup.Controls.Add(this.shinyCombo);
@@ -216,7 +236,7 @@ namespace AutoModPlugins.GUI
             this.criteriaGroup.Controls.Add(this.abilityLabel);
             this.criteriaGroup.Controls.Add(this.genderCombo);
             this.criteriaGroup.Controls.Add(this.genderLabel);
-            this.criteriaGroup.Location = new System.Drawing.Point(8, 134);
+            this.criteriaGroup.Location = new System.Drawing.Point(8, 164);
             this.criteriaGroup.Name = "criteriaGroup";
             this.criteriaGroup.Size = new System.Drawing.Size(330, 120);
             this.criteriaGroup.TabIndex = 1;
@@ -326,7 +346,7 @@ namespace AutoModPlugins.GUI
             this.ivGroup.Controls.Add(this.ivHpMax);
             this.ivGroup.Controls.Add(this.ivHpMin);
             this.ivGroup.Controls.Add(this.ivHpLabel);
-            this.ivGroup.Location = new System.Drawing.Point(8, 260);
+            this.ivGroup.Location = new System.Drawing.Point(8, 290);
             this.ivGroup.Name = "ivGroup";
             this.ivGroup.Size = new System.Drawing.Size(330, 180);
             this.ivGroup.TabIndex = 2;
@@ -492,7 +512,7 @@ namespace AutoModPlugins.GUI
             this.searchOptionsGroup.Controls.Add(this.searchButton);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsNum);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsLabel);
-            this.searchOptionsGroup.Location = new System.Drawing.Point(8, 446);
+            this.searchOptionsGroup.Location = new System.Drawing.Point(8, 476);
             this.searchOptionsGroup.Name = "searchOptionsGroup";
             this.searchOptionsGroup.Size = new System.Drawing.Size(330, 100);
             this.searchOptionsGroup.TabIndex = 3;
@@ -654,6 +674,8 @@ namespace AutoModPlugins.GUI
         private System.Windows.Forms.Panel resultsPanel;
 
         private System.Windows.Forms.GroupBox speciesGroup;
+        private System.Windows.Forms.Label speciesSearchLabel;
+        private System.Windows.Forms.TextBox speciesSearchBox;
         private System.Windows.Forms.Label speciesLabel;
         private System.Windows.Forms.ComboBox speciesCombo;
         private System.Windows.Forms.Label formLabel;

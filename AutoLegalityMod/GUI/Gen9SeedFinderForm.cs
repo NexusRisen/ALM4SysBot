@@ -26,6 +26,7 @@ public partial class Gen9SeedFinderForm : Form
     private List<SeedResult> _results = [];
     private List<ITeraRaid9> _cachedSpeciesEncounters = [];
     private EncounterSource _availableSources;
+    private List<ComboItem> _allSpecies = [];
 
     [Flags]
     private enum EncounterSource
@@ -65,9 +66,46 @@ public partial class Gen9SeedFinderForm : Form
                 species.Add(new ComboItem(names[i], i));
         }
 
+        _allSpecies = species;
         speciesCombo.DisplayMember = "Text";
         speciesCombo.ValueMember = "Value";
         speciesCombo.DataSource = species;
+    }
+
+    /// <summary>
+    /// Handles the search box text change event to filter species
+    /// </summary>
+    private void SpeciesSearchBox_TextChanged(object? sender, EventArgs e)
+    {
+        var searchText = speciesSearchBox.Text.Trim();
+
+        if (string.IsNullOrEmpty(searchText))
+        {
+            // Show all species if search is empty
+            speciesCombo.DataSource = _allSpecies;
+            return;
+        }
+
+        // Filter species based on search text (case-insensitive)
+        var filteredSpecies = _allSpecies.Where(s =>
+            s.Text.Contains(searchText, StringComparison.OrdinalIgnoreCase)).ToList();
+
+        // Update the combo box with filtered results
+        if (filteredSpecies.Count > 0)
+        {
+            speciesCombo.DataSource = filteredSpecies;
+
+            // If there's only one result, auto-select it
+            if (filteredSpecies.Count == 1)
+            {
+                speciesCombo.SelectedIndex = 0;
+            }
+        }
+        else
+        {
+            // Show empty list if no matches
+            speciesCombo.DataSource = new List<ComboItem>();
+        }
     }
 
     /// <summary>
