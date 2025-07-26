@@ -149,7 +149,6 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private void UpdateFormList(int species)
     {
-        var pi = PersonalTable.SV[species];
         var forms = FormConverter.GetFormList((ushort)species, GameInfo.Strings.types, GameInfo.Strings.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen9);
 
         formCombo.DisplayMember = "Text";
@@ -556,9 +555,9 @@ public partial class Gen9SeedFinderForm : Form
     /// <summary>
     /// Filters encounters by species
     /// </summary>
-    private static List<T> GetEncountersForSpecies<T>(T[] encounters, int species) where T : ITeraRaid9
+    private static List<ITeraRaid9> GetEncountersForSpecies(ITeraRaid9[] encounters, int species)
     {
-        return encounters.Where(e => e.Species == species).ToList();
+        return [.. encounters.Where(e => e.Species == species)];
     }
 
     /// <summary>
@@ -866,12 +865,8 @@ public partial class Gen9SeedFinderForm : Form
                 continue;
 
             // For random form encounters, verify the generated form matches what the user is searching for
-            if (encounter is IEncounterFormRandom efr && efr.IsRandomUnspecificForm)
-            {
-                // The generated Pokémon might have a different form than what we're searching for
-                if (pk.Form != form)
-                    continue;
-            }
+            if (encounter is IEncounterFormRandom { IsRandomUnspecificForm: true } && pk.Form != form)
+                continue;
 
             // Check if the generated Pokemon matches our shiny criteria
             bool matchesShiny = criteria.Shiny switch
@@ -927,9 +922,9 @@ public partial class Gen9SeedFinderForm : Form
     private static uint GetRandomUInt32(Random rand)
     {
         // Generate full 32-bit value by combining two random values
-        var bytes = new byte[4];
+        Span<byte> bytes = stackalloc byte[4];
         rand.NextBytes(bytes);
-        return BitConverter.ToUInt32(bytes, 0);
+        return BitConverter.ToUInt32(bytes);
     }
 
     /// <summary>
@@ -938,15 +933,15 @@ public partial class Gen9SeedFinderForm : Form
     private static bool CheckAbilityCriteria(PK9 pk, AbilityPermission criteria)
     {
         var pi = PersonalTable.SV[pk.Species, pk.Form];
-        var abilityNumber = pk.AbilityNumber;
 
-        return criteria switch
+        return (criteria, pk.AbilityNumber) switch
         {
-            AbilityPermission.OnlyFirst => abilityNumber == 1 && pk.Ability == pi.Ability1,
-            AbilityPermission.OnlySecond => abilityNumber == 2 && pk.Ability == pi.Ability2,
-            AbilityPermission.OnlyHidden => abilityNumber == 4 && pk.Ability == pi.AbilityH,
-            AbilityPermission.Any12 => abilityNumber <= 2,
-            _ => true
+            (AbilityPermission.OnlyFirst, 1) => pk.Ability == pi.Ability1,
+            (AbilityPermission.OnlySecond, 2) => pk.Ability == pi.Ability2,
+            (AbilityPermission.OnlyHidden, 4) => pk.Ability == pi.AbilityH,
+            (AbilityPermission.Any12, <= 2) => true,
+            (_, _) when criteria == AbilityPermission.Any12H => true,
+            _ => false
         };
     }
 
