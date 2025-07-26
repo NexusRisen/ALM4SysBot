@@ -162,49 +162,62 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private void UpdateEncounterList(int species)
     {
-        var encounters = new List<ITeraRaid9>();
+        var allEncounters = new List<ITeraRaid9>();
         _availableSources = EncounterSource.None;
 
         // Check each source and only add if it contains this species
         var baseEnc = GetEncountersForSpecies(Encounters9.TeraBase, species);
         if (baseEnc.Count > 0)
         {
-            encounters.AddRange(baseEnc);
+            allEncounters.AddRange(baseEnc);
             _availableSources |= EncounterSource.Base;
         }
 
         var dlc1Enc = GetEncountersForSpecies(Encounters9.TeraDLC1, species);
         if (dlc1Enc.Count > 0)
         {
-            encounters.AddRange(dlc1Enc);
+            allEncounters.AddRange(dlc1Enc);
             _availableSources |= EncounterSource.DLC1;
         }
 
         var dlc2Enc = GetEncountersForSpecies(Encounters9.TeraDLC2, species);
         if (dlc2Enc.Count > 0)
         {
-            encounters.AddRange(dlc2Enc);
+            allEncounters.AddRange(dlc2Enc);
             _availableSources |= EncounterSource.DLC2;
         }
 
         var distEnc = GetEncountersForSpecies(Encounters9.Dist, species);
         if (distEnc.Count > 0)
         {
-            encounters.AddRange(distEnc);
+            allEncounters.AddRange(distEnc);
             _availableSources |= EncounterSource.Dist;
         }
 
         var mightEnc = GetEncountersForSpecies(Encounters9.Might, species);
         if (mightEnc.Count > 0)
         {
-            encounters.AddRange(mightEnc);
+            allEncounters.AddRange(mightEnc);
             _availableSources |= EncounterSource.Might;
         }
 
         // Cache in priority order: Dist and Might have priority
         _cachedSpeciesEncounters = [.. distEnc, .. mightEnc, .. baseEnc, .. dlc1Enc, .. dlc2Enc];
 
-        var items = encounters.Select(e => new EncounterItem(e)).ToList();
+        // Remove duplicates based on encounter properties
+        var uniqueEncounters = new List<ITeraRaid9>();
+        var seen = new HashSet<string>();
+
+        foreach (var enc in allEncounters)
+        {
+            var key = GetEncounterKey(enc);
+            if (seen.Add(key))
+            {
+                uniqueEncounters.Add(enc);
+            }
+        }
+
+        var items = uniqueEncounters.Select(e => new EncounterItem(e)).ToList();
         items.Insert(0, new EncounterItem(null)); // Any encounter
 
         encounterCombo.DisplayMember = "Text";
@@ -214,6 +227,14 @@ public partial class Gen9SeedFinderForm : Form
         // Add event handler for encounter selection
         encounterCombo.SelectedIndexChanged -= EncounterCombo_SelectedIndexChanged;
         encounterCombo.SelectedIndexChanged += EncounterCombo_SelectedIndexChanged;
+    }
+
+    /// <summary>
+    /// Gets a unique key for an encounter to detect duplicates
+    /// </summary>
+    private static string GetEncounterKey(ITeraRaid9 encounter)
+    {
+        return $"{encounter.Species}_{encounter.Form}_{encounter.Stars}_{encounter.Index}_{encounter.GetType().Name}";
     }
 
     /// <summary>
@@ -738,9 +759,19 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private EncounterCriteria GetCriteria()
     {
+        var genderIndex = genderCombo.SelectedIndex;
+        var gender = genderIndex switch
+        {
+            0 => Gender.Random,
+            1 => (Gender)0, // Male
+            2 => (Gender)1, // Female
+            3 => (Gender)2, // Genderless
+            _ => Gender.Random
+        };
+
         var criteria = new EncounterCriteria
         {
-            Gender = (Gender)genderCombo.SelectedIndex,
+            Gender = gender,
             Ability = GetAbilityPermission(),
             Nature = natureCombo.SelectedIndex == 0 ? Nature.Random : (Nature)(natureCombo.SelectedIndex - 1),
             Shiny = (Shiny)shinyCombo.SelectedIndex,
@@ -794,7 +825,8 @@ public partial class Gen9SeedFinderForm : Form
 
         while (results.Count < maxSeeds && !token.IsCancellationRequested)
         {
-            var seed = (uint)rand.Next();
+            // Generate full 32-bit seed using two Random.Next() calls
+            var seed = GetRandomUInt32(rand);
             seedsChecked++;
 
             if (seedsChecked % 1000 == 0)
@@ -882,6 +914,17 @@ public partial class Gen9SeedFinderForm : Form
     }
 
     /// <summary>
+    /// Generates a random 32-bit unsigned integer
+    /// </summary>
+    private static uint GetRandomUInt32(Random rand)
+    {
+        // Generate full 32-bit value by combining two random values
+        var bytes = new byte[4];
+        rand.NextBytes(bytes);
+        return BitConverter.ToUInt32(bytes, 0);
+    }
+
+    /// <summary>
     /// Checks if the Pokemon matches the ability criteria
     /// </summary>
     private static bool CheckAbilityCriteria(PK9 pk, AbilityPermission criteria)
@@ -956,9 +999,6 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria)
     {
-        if (!encounter.CanBeEncountered(seed))
-            return null;
-
         var pi = PersonalTable.SV[encounter.Species, encounter.Form];
 
         // Get proper parameters based on encounter type
@@ -1033,17 +1073,9 @@ public partial class Gen9SeedFinderForm : Form
 
         try
         {
-            var rng = new Xoroshiro128Plus(seed);
-
-            // For Might encounters, enforce no shiny
-            bool forceNoShiny = encounter is EncounterMight9;
-
-            SetEncryptionAndPID(pk, ref rng, param, encounter.Shiny == Shiny.Always, forceNoShiny);
-            SetIVs(pk, param, ref rng);
-            SetAbility(pk, param, ref rng);
-            SetGender(pk, param, ref rng);
-            SetNature(pk, param, ref rng);
-            SetScaleAndSize(pk, param, ref rng);
+            // Use the exact PKHeX method for generating raid data
+            if (!Encounter9RNG.GenerateData(pk, param, criteria, seed))
+                return null;
 
             var teraType = Tera9RNG.GetTeraType(seed, encounter.TeraType, encounter.Species, encounter.Form);
             pk.TeraTypeOriginal = (MoveType)teraType;
@@ -1070,184 +1102,6 @@ public partial class Gen9SeedFinderForm : Form
             System.Diagnostics.Debug.WriteLine($"Error generating raid Pokémon: {ex.Message}");
             return null;
         }
-    }
-
-    /// <summary>
-    /// Sets the Encryption Constant and PID with proper shiny handling
-    /// </summary>
-    private static void SetEncryptionAndPID(PK9 pk, ref Xoroshiro128Plus rng, GenerateParam9 param, bool forceShiny, bool forceNoShiny = false)
-    {
-        pk.EncryptionConstant = (uint)rng.NextInt(uint.MaxValue);
-
-        uint fakeTID = (uint)rng.NextInt(uint.MaxValue);
-        uint pid = (uint)rng.NextInt(uint.MaxValue);
-
-        if (forceNoShiny || param.Shiny == Shiny.Never)
-        {
-            if (ShinyUtil.GetIsShiny6(fakeTID, pid))
-                pid ^= 0x10000000;
-            if (ShinyUtil.GetIsShiny6(pk.ID32, pid))
-                pid ^= 0x10000000;
-        }
-        else if (param.Shiny == Shiny.Always || forceShiny)
-        {
-            var tid = (ushort)fakeTID;
-            var sid = (ushort)(fakeTID >> 16);
-            if (!ShinyUtil.GetIsShiny6(fakeTID, pid))
-                pid = ShinyUtil.GetShinyPID(tid, sid, pid, 0);
-            if (!ShinyUtil.GetIsShiny6(pk.ID32, pid))
-                pid = ShinyUtil.GetShinyPID(pk.TID16, pk.SID16, pid, ShinyUtil.GetShinyXor(pid, fakeTID) == 0 ? 0u : 1u);
-        }
-        else // Random shiny
-        {
-            int rollCount = param.RollCount;
-            bool isShiny = false;
-            uint xor = 0;
-
-            for (int i = 0; i < rollCount; i++)
-            {
-                xor = ShinyUtil.GetShinyXor(pid, fakeTID);
-                isShiny = xor < 16;
-                if (isShiny)
-                {
-                    if (xor != 0)
-                        xor = 1;
-                    break;
-                }
-                if (i < rollCount - 1)
-                    pid = (uint)rng.NextInt(uint.MaxValue);
-            }
-
-            ShinyUtil.ForceShinyState(isShiny, ref pid, pk.ID32, xor);
-        }
-
-        pk.PID = pid;
-    }
-
-    /// <summary>
-    /// Sets the IVs based on encounter parameters
-    /// </summary>
-    private static void SetIVs(PK9 pk, GenerateParam9 param, ref Xoroshiro128Plus rng)
-    {
-        Span<int> ivs = stackalloc int[6];
-        for (int i = 0; i < 6; i++)
-            ivs[i] = -1; // Initialize as unfixed
-
-        // Handle fixed IV spreads if specified
-        if (param.IVs.IsSpecified)
-        {
-            param.IVs.CopyToSpeedLast(ivs);
-        }
-        else
-        {
-            // Set guaranteed flawless IVs
-            int flawlessCount = Math.Min((int)param.FlawlessIVs, 6);
-            for (int i = 0; i < flawlessCount; i++)
-            {
-                int index;
-                do
-                {
-                    index = (int)rng.NextInt(6);
-                } while (ivs[index] != -1);
-                ivs[index] = 31;
-            }
-        }
-
-        // Generate random IVs for remaining stats
-        for (int i = 0; i < 6; i++)
-        {
-            if (ivs[i] == -1)
-                ivs[i] = (int)rng.NextInt(32);
-        }
-
-        // Apply IVs to the Pokémon
-        pk.IV_HP = ivs[0];
-        pk.IV_ATK = ivs[1];
-        pk.IV_DEF = ivs[2];
-        pk.IV_SPA = ivs[3];
-        pk.IV_SPD = ivs[4];
-        pk.IV_SPE = ivs[5];
-    }
-
-    /// <summary>
-    /// Sets the ability based on encounter parameters
-    /// </summary>
-    private static void SetAbility(PK9 pk, GenerateParam9 param, ref Xoroshiro128Plus rng)
-    {
-        var pi = PersonalTable.SV.GetFormEntry(pk.Species, pk.Form);
-        var abilityIndex = param.Ability switch
-        {
-            AbilityPermission.Any12H => (int)rng.NextInt(3),
-            AbilityPermission.Any12 => (int)rng.NextInt(2),
-            AbilityPermission.OnlyFirst => 0,
-            AbilityPermission.OnlySecond => 1,
-            AbilityPermission.OnlyHidden => 2,
-            _ => 0,
-        };
-
-        // Apply ability based on index
-        pk.RefreshAbility(abilityIndex);
-    }
-
-    /// <summary>
-    /// Sets the gender based on species gender ratio and RNG
-    /// </summary>
-    private static void SetGender(PK9 pk, GenerateParam9 param, ref Xoroshiro128Plus rng)
-    {
-        byte genderRatio = param.GenderRatio;
-
-        if (genderRatio == PersonalInfo.RatioMagicGenderless)
-            pk.Gender = 2; // Genderless
-        else if (genderRatio == PersonalInfo.RatioMagicFemale)
-            pk.Gender = 1; // Female only
-        else if (genderRatio == PersonalInfo.RatioMagicMale)
-            pk.Gender = 0; // Male only
-        else
-        {
-            // Use RNG for gender determination
-            var rand100 = rng.NextInt(100);
-            pk.Gender = Encounter9RNG.GetGender(genderRatio, rand100);
-        }
-    }
-
-    /// <summary>
-    /// Sets the nature based on encounter parameters
-    /// </summary>
-    private static void SetNature(PK9 pk, GenerateParam9 param, ref Xoroshiro128Plus rng)
-    {
-        Nature nature;
-
-        if (param.Nature != Nature.Random)
-        {
-            nature = param.Nature;
-        }
-        else if (pk.Species == (int)Species.Toxtricity)
-        {
-            // Special case for Toxtricity - nature determines form
-            nature = ToxtricityUtil.GetRandomNature(ref rng, pk.Form);
-        }
-        else
-        {
-            // Random nature (0-24)
-            nature = (Nature)rng.NextInt(25);
-        }
-
-        pk.Nature = pk.StatNature = nature;
-    }
-
-    /// <summary>
-    /// Sets the height, weight and scale based on encounter parameters
-    /// </summary>
-    private static void SetScaleAndSize(PK9 pk, GenerateParam9 param, ref Xoroshiro128Plus rng)
-    {
-        // Set height scalar
-        pk.HeightScalar = param.Height != 0 ? param.Height : (byte)(rng.NextInt(0x81) + rng.NextInt(0x80));
-
-        // Set weight scalar
-        pk.WeightScalar = param.Weight != 0 ? param.Weight : (byte)(rng.NextInt(0x81) + rng.NextInt(0x80));
-
-        // Set scale according to scale type
-        pk.Scale = param.ScaleType.GetSizeValue(param.Scale, ref rng);
     }
 
     /// <summary>
