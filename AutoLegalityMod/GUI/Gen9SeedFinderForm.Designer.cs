@@ -547,13 +547,13 @@ namespace AutoModPlugins.GUI
             this.resultsGrid.AllowUserToDeleteRows = false;
             this.resultsGrid.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.resultsGrid.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Seed", Width = 80 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Stars", Width = 50 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Shiny", Width = 50 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Nature", Width = 80 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Ability", Width = 100 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "IVs", Width = 120 },
-                new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Tera", Width = 80 }
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Seed", Width = 80 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Stars", Width = 50 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Shiny", Width = 50 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Nature", Width = 80 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Ability", Width = 100 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "IVs", Width = 120 },
+            new System.Windows.Forms.DataGridViewTextBoxColumn { HeaderText = "Tera", Width = 80 }
             });
             this.resultsGrid.Dock = System.Windows.Forms.DockStyle.Fill;
             this.resultsGrid.Location = new System.Drawing.Point(0, 0);
@@ -563,6 +563,24 @@ namespace AutoModPlugins.GUI
             this.resultsGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.resultsGrid.Size = new System.Drawing.Size(546, 628);
             this.resultsGrid.TabIndex = 0;
+
+            // Set selection colors for better visibility on dark backgrounds
+            this.resultsGrid.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.DodgerBlue;
+            this.resultsGrid.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.White;
+
+            // Optional: Set alternate row color for better readability
+            this.resultsGrid.AlternatingRowsDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            this.resultsGrid.AlternatingRowsDefaultCellStyle.ForeColor = System.Drawing.Color.White;
+
+            // Set grid line color for dark theme
+            this.resultsGrid.GridColor = System.Drawing.Color.FromArgb(60, 60, 60);
+
+            // Set column header style for dark theme
+            this.resultsGrid.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            this.resultsGrid.ColumnHeadersDefaultCellStyle.ForeColor = System.Drawing.Color.White;
+            this.resultsGrid.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.Color.FromArgb(45, 45, 48);
+            this.resultsGrid.EnableHeadersVisualStyles = false;
+
             this.resultsGrid.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ResultsGrid_CellDoubleClick);
 
             // statusStrip

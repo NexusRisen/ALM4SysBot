@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using PKHeX.Core;
+using PKHeX.Core.AutoMod;
 
 namespace AutoModPlugins.GUI;
 
@@ -414,6 +415,9 @@ public partial class Gen9SeedFinderForm : Form
                 pk.SetRibbonIndex(RibbonIndex.MarkMightiest, true);
             }
 
+            // Ensure valid Met Date for Mighty Raid Pokemon
+            pk.CheckAndSetUnrivaledDate();
+
             pk.ResetPartyStats();
 
             return pk;
@@ -622,7 +626,15 @@ public partial class Gen9SeedFinderForm : Form
             );
 
             if (result.Pokemon.IsShiny)
-                resultsGrid.Rows[row].DefaultCellStyle.BackColor = Color.LightYellow;
+            {
+                // Use a darker gold color that works better with dark themes
+                resultsGrid.Rows[row].DefaultCellStyle.BackColor = Color.FromArgb(64, 64, 32);
+                resultsGrid.Rows[row].DefaultCellStyle.ForeColor = Color.Gold;
+
+                // Ensure the selection colors are still visible for shiny rows
+                resultsGrid.Rows[row].DefaultCellStyle.SelectionBackColor = Color.DarkGoldenrod;
+                resultsGrid.Rows[row].DefaultCellStyle.SelectionForeColor = Color.White;
+            }
         });
     }
 
