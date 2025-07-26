@@ -24,6 +24,19 @@ public partial class Gen9SeedFinderForm : Form
     private readonly IPKMView _pkmEditor;
     private CancellationTokenSource? _searchCts;
     private List<SeedResult> _results = [];
+    private List<ITeraRaid9> _cachedSpeciesEncounters = [];
+    private EncounterSource _availableSources;
+
+    [Flags]
+    private enum EncounterSource
+    {
+        None = 0,
+        Base = 1 << 0,
+        DLC1 = 1 << 1,
+        DLC2 = 1 << 2,
+        Dist = 1 << 3,
+        Might = 1 << 4,
+    }
 
     /// <summary>
     /// Initializes a new instance of the Gen9SeedFinderForm
@@ -67,6 +80,29 @@ public partial class Gen9SeedFinderForm : Form
 
         UpdateFormList(species);
         UpdateEncounterList(species);
+        UpdateSourceDisplay();
+    }
+
+    /// <summary>
+    /// Updates the status to show which sources contain the selected species
+    /// </summary>
+    private void UpdateSourceDisplay()
+    {
+        var sources = new List<string>();
+        if (_availableSources.HasFlag(EncounterSource.Base))
+            sources.Add("Paldea");
+        if (_availableSources.HasFlag(EncounterSource.DLC1))
+            sources.Add("Kitakami");
+        if (_availableSources.HasFlag(EncounterSource.DLC2))
+            sources.Add("Blueberry");
+        if (_availableSources.HasFlag(EncounterSource.Dist))
+            sources.Add("Event");
+        if (_availableSources.HasFlag(EncounterSource.Might))
+            sources.Add("7★");
+
+        statusLabel.Text = sources.Count > 0
+            ? $"Available in: {string.Join(", ", sources)}"
+            : "No encounters found";
     }
 
     /// <summary>
@@ -88,13 +124,46 @@ public partial class Gen9SeedFinderForm : Form
     private void UpdateEncounterList(int species)
     {
         var encounters = new List<ITeraRaid9>();
+        _availableSources = EncounterSource.None;
 
-        // Get all possible Tera Raid encounters for this species
-        encounters.AddRange(GetEncountersForSpecies(Encounters9.TeraBase, species));
-        encounters.AddRange(GetEncountersForSpecies(Encounters9.TeraDLC1, species));
-        encounters.AddRange(GetEncountersForSpecies(Encounters9.TeraDLC2, species));
-        encounters.AddRange(GetEncountersForSpecies(Encounters9.Dist, species));
-        encounters.AddRange(GetEncountersForSpecies(Encounters9.Might, species));
+        // Check each source and only add if it contains this species
+        var baseEnc = GetEncountersForSpecies(Encounters9.TeraBase, species);
+        if (baseEnc.Count > 0)
+        {
+            encounters.AddRange(baseEnc);
+            _availableSources |= EncounterSource.Base;
+        }
+
+        var dlc1Enc = GetEncountersForSpecies(Encounters9.TeraDLC1, species);
+        if (dlc1Enc.Count > 0)
+        {
+            encounters.AddRange(dlc1Enc);
+            _availableSources |= EncounterSource.DLC1;
+        }
+
+        var dlc2Enc = GetEncountersForSpecies(Encounters9.TeraDLC2, species);
+        if (dlc2Enc.Count > 0)
+        {
+            encounters.AddRange(dlc2Enc);
+            _availableSources |= EncounterSource.DLC2;
+        }
+
+        var distEnc = GetEncountersForSpecies(Encounters9.Dist, species);
+        if (distEnc.Count > 0)
+        {
+            encounters.AddRange(distEnc);
+            _availableSources |= EncounterSource.Dist;
+        }
+
+        var mightEnc = GetEncountersForSpecies(Encounters9.Might, species);
+        if (mightEnc.Count > 0)
+        {
+            encounters.AddRange(mightEnc);
+            _availableSources |= EncounterSource.Might;
+        }
+
+        // Cache in priority order: Dist and Might have priority
+        _cachedSpeciesEncounters = [.. distEnc, .. mightEnc, .. baseEnc, .. dlc1Enc, .. dlc2Enc];
 
         var items = encounters.Select(e => new EncounterItem(e)).ToList();
         items.Insert(0, new EncounterItem(null)); // Any encounter
@@ -254,7 +323,7 @@ public partial class Gen9SeedFinderForm : Form
             else
             {
                 // Find any matching encounter for this species/form
-                encounter = FindMatchingEncounter(seed, species, form);
+                encounter = FindMatchingEncounter(seed, form);
                 if (encounter == null)
                     continue;
             }
@@ -367,63 +436,16 @@ public partial class Gen9SeedFinderForm : Form
     /// <summary>
     /// Finds a matching encounter for the given seed
     /// </summary>
-    private static ITeraRaid9? FindMatchingEncounter(uint seed, int species, byte form)
+    private ITeraRaid9? FindMatchingEncounter(uint seed, byte form)
     {
-        // Check all encounter types in priority order and return immediately when found
+        // Use cached encounters filtered by form - only searches encounters that exist for this species
+        var formEncounters = _cachedSpeciesEncounters.Where(e =>
+            e.Form == form || e.Form >= EncounterUtil.FormDynamic);
 
-        // Check Dist encounters first (highest priority)
-        foreach (var encounter in Encounters9.Dist)
+        foreach (var encounter in formEncounters)
         {
-            if (encounter.Species == species &&
-                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
-                encounter.CanBeEncountered(seed))
-            {
+            if (encounter.CanBeEncountered(seed))
                 return encounter;
-            }
-        }
-
-        // Check Might encounters
-        foreach (var encounter in Encounters9.Might)
-        {
-            if (encounter.Species == species &&
-                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
-                encounter.CanBeEncountered(seed))
-            {
-                return encounter;
-            }
-        }
-
-        // Check TeraBase encounters
-        foreach (var encounter in Encounters9.TeraBase)
-        {
-            if (encounter.Species == species &&
-                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
-                encounter.CanBeEncountered(seed))
-            {
-                return encounter;
-            }
-        }
-
-        // Check TeraDLC1 encounters
-        foreach (var encounter in Encounters9.TeraDLC1)
-        {
-            if (encounter.Species == species &&
-                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
-                encounter.CanBeEncountered(seed))
-            {
-                return encounter;
-            }
-        }
-
-        // Check TeraDLC2 encounters
-        foreach (var encounter in Encounters9.TeraDLC2)
-        {
-            if (encounter.Species == species &&
-                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
-                encounter.CanBeEncountered(seed))
-            {
-                return encounter;
-            }
         }
 
         return null;
