@@ -369,18 +369,64 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private static ITeraRaid9? FindMatchingEncounter(uint seed, int species, byte form)
     {
-        // Check all encounter types and return the first valid one
-        var allEncounters = new List<ITeraRaid9>();
+        // Check all encounter types in priority order and return immediately when found
 
-        // Add encounters in priority order
-        allEncounters.AddRange(Encounters9.Dist.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic)));
-        allEncounters.AddRange(Encounters9.Might.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic)));
-        allEncounters.AddRange(Encounters9.TeraBase.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic)));
-        allEncounters.AddRange(Encounters9.TeraDLC1.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic)));
-        allEncounters.AddRange(Encounters9.TeraDLC2.Where(e => e.Species == species && (e.Form == form || e.Form >= EncounterUtil.FormDynamic)));
+        // Check Dist encounters first (highest priority)
+        foreach (var encounter in Encounters9.Dist)
+        {
+            if (encounter.Species == species &&
+                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
+                encounter.CanBeEncountered(seed))
+            {
+                return encounter;
+            }
+        }
 
-        // Return the first encounter that can be encountered with this seed
-        return allEncounters.FirstOrDefault(e => e.CanBeEncountered(seed));
+        // Check Might encounters
+        foreach (var encounter in Encounters9.Might)
+        {
+            if (encounter.Species == species &&
+                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
+                encounter.CanBeEncountered(seed))
+            {
+                return encounter;
+            }
+        }
+
+        // Check TeraBase encounters
+        foreach (var encounter in Encounters9.TeraBase)
+        {
+            if (encounter.Species == species &&
+                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
+                encounter.CanBeEncountered(seed))
+            {
+                return encounter;
+            }
+        }
+
+        // Check TeraDLC1 encounters
+        foreach (var encounter in Encounters9.TeraDLC1)
+        {
+            if (encounter.Species == species &&
+                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
+                encounter.CanBeEncountered(seed))
+            {
+                return encounter;
+            }
+        }
+
+        // Check TeraDLC2 encounters
+        foreach (var encounter in Encounters9.TeraDLC2)
+        {
+            if (encounter.Species == species &&
+                (encounter.Form == form || encounter.Form >= EncounterUtil.FormDynamic) &&
+                encounter.CanBeEncountered(seed))
+            {
+                return encounter;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
