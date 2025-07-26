@@ -785,15 +785,15 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private IVRange[] GetIVRanges()
     {
-        return new[]
-        {
+        return
+        [
             new IVRange((int)ivHpMin.Value, (int)ivHpMax.Value),
             new IVRange((int)ivAtkMin.Value, (int)ivAtkMax.Value),
             new IVRange((int)ivDefMin.Value, (int)ivDefMax.Value),
             new IVRange((int)ivSpaMin.Value, (int)ivSpaMax.Value),
             new IVRange((int)ivSpdMin.Value, (int)ivSpdMax.Value),
             new IVRange((int)ivSpeMin.Value, (int)ivSpeMax.Value),
-        };
+        ];
     }
 
     /// <summary>
