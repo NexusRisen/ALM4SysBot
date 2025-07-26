@@ -751,7 +751,7 @@ public partial class Gen9SeedFinderForm : Form
             {
                 EncounterTera9 => "Base",
                 EncounterDist9 => "Event",
-                EncounterMight9 => "7★ Mighty",
+                EncounterMight9 => "Mighty",
                 _ => "Unknown"
             };
         }
