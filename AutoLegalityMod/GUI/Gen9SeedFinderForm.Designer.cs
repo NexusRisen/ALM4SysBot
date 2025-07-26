@@ -2,12 +2,18 @@
 
 namespace AutoModPlugins.GUI
 {
+    /// <summary>
+    /// Designer file for the Gen9SeedFinderForm
+    /// </summary>
     partial class Gen9SeedFinderForm
     {
         private System.ComponentModel.IContainer components = null;
 
         #region Windows Form Designer generated code
 
+        /// <summary>
+        /// Required method for Designer support
+        /// </summary>
         private void InitializeComponent()
         {
             this.mainPanel = new System.Windows.Forms.Panel();
@@ -36,16 +42,24 @@ namespace AutoModPlugins.GUI
             this.ivGroup = new System.Windows.Forms.GroupBox();
             this.ivHpLabel = new System.Windows.Forms.Label();
             this.ivHpMin = new System.Windows.Forms.NumericUpDown();
+            this.ivHpMax = new System.Windows.Forms.NumericUpDown();
             this.ivAtkLabel = new System.Windows.Forms.Label();
             this.ivAtkMin = new System.Windows.Forms.NumericUpDown();
+            this.ivAtkMax = new System.Windows.Forms.NumericUpDown();
             this.ivDefLabel = new System.Windows.Forms.Label();
             this.ivDefMin = new System.Windows.Forms.NumericUpDown();
+            this.ivDefMax = new System.Windows.Forms.NumericUpDown();
             this.ivSpaLabel = new System.Windows.Forms.Label();
             this.ivSpaMin = new System.Windows.Forms.NumericUpDown();
+            this.ivSpaMax = new System.Windows.Forms.NumericUpDown();
             this.ivSpdLabel = new System.Windows.Forms.Label();
             this.ivSpdMin = new System.Windows.Forms.NumericUpDown();
+            this.ivSpdMax = new System.Windows.Forms.NumericUpDown();
             this.ivSpeLabel = new System.Windows.Forms.Label();
             this.ivSpeMin = new System.Windows.Forms.NumericUpDown();
+            this.ivSpeMax = new System.Windows.Forms.NumericUpDown();
+            this.ivMinLabel = new System.Windows.Forms.Label();
+            this.ivMaxLabel = new System.Windows.Forms.Label();
 
             this.searchOptionsGroup = new System.Windows.Forms.GroupBox();
             this.maxSeedsLabel = new System.Windows.Forms.Label();
@@ -71,11 +85,17 @@ namespace AutoModPlugins.GUI
             this.ivGroup.SuspendLayout();
             this.searchOptionsGroup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivHpMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivHpMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivAtkMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivAtkMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivDefMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivDefMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpaMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpaMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpdMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpdMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpeMin)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpeMax)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxSeedsNum)).BeginInit();
             this.resultsPanel.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.resultsGrid)).BeginInit();
@@ -85,10 +105,10 @@ namespace AutoModPlugins.GUI
             // Form
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(900, 600);
+            this.ClientSize = new System.Drawing.Size(900, 650);
             this.Controls.Add(this.mainPanel);
             this.Controls.Add(this.statusStrip);
-            this.MinimumSize = new System.Drawing.Size(900, 600);
+            this.MinimumSize = new System.Drawing.Size(900, 650);
             this.Name = "Gen9SeedFinderForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Gen 9 Seed Finder";
@@ -98,7 +118,7 @@ namespace AutoModPlugins.GUI
             this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainPanel.Location = new System.Drawing.Point(0, 0);
             this.mainPanel.Name = "mainPanel";
-            this.mainPanel.Size = new System.Drawing.Size(900, 578);
+            this.mainPanel.Size = new System.Drawing.Size(900, 628);
             this.mainPanel.TabIndex = 0;
 
             // splitContainer
@@ -107,7 +127,7 @@ namespace AutoModPlugins.GUI
             this.splitContainer.Name = "splitContainer";
             this.splitContainer.Panel1.Controls.Add(this.searchPanel);
             this.splitContainer.Panel2.Controls.Add(this.resultsPanel);
-            this.splitContainer.Size = new System.Drawing.Size(900, 578);
+            this.splitContainer.Size = new System.Drawing.Size(900, 628);
             this.splitContainer.SplitterDistance = 350;
             this.splitContainer.TabIndex = 0;
 
@@ -121,7 +141,7 @@ namespace AutoModPlugins.GUI
             this.searchPanel.Location = new System.Drawing.Point(0, 0);
             this.searchPanel.Name = "searchPanel";
             this.searchPanel.Padding = new System.Windows.Forms.Padding(5);
-            this.searchPanel.Size = new System.Drawing.Size(350, 578);
+            this.searchPanel.Size = new System.Drawing.Size(350, 628);
             this.searchPanel.TabIndex = 0;
 
             // speciesGroup
@@ -133,7 +153,7 @@ namespace AutoModPlugins.GUI
             this.speciesGroup.Controls.Add(this.speciesLabel);
             this.speciesGroup.Location = new System.Drawing.Point(8, 8);
             this.speciesGroup.Name = "speciesGroup";
-            this.speciesGroup.Size = new System.Drawing.Size(330, 140);
+            this.speciesGroup.Size = new System.Drawing.Size(330, 120);
             this.speciesGroup.TabIndex = 0;
             this.speciesGroup.TabStop = false;
             this.speciesGroup.Text = "Target Pokémon";
@@ -196,9 +216,9 @@ namespace AutoModPlugins.GUI
             this.criteriaGroup.Controls.Add(this.abilityLabel);
             this.criteriaGroup.Controls.Add(this.genderCombo);
             this.criteriaGroup.Controls.Add(this.genderLabel);
-            this.criteriaGroup.Location = new System.Drawing.Point(8, 154);
+            this.criteriaGroup.Location = new System.Drawing.Point(8, 134);
             this.criteriaGroup.Name = "criteriaGroup";
-            this.criteriaGroup.Size = new System.Drawing.Size(330, 140);
+            this.criteriaGroup.Size = new System.Drawing.Size(330, 120);
             this.criteriaGroup.TabIndex = 1;
             this.criteriaGroup.TabStop = false;
             this.criteriaGroup.Text = "Search Criteria";
@@ -286,121 +306,193 @@ namespace AutoModPlugins.GUI
             this.shinyCombo.SelectedIndex = 0;
 
             // ivGroup
+            this.ivGroup.Controls.Add(this.ivMaxLabel);
+            this.ivGroup.Controls.Add(this.ivMinLabel);
+            this.ivGroup.Controls.Add(this.ivSpeMax);
             this.ivGroup.Controls.Add(this.ivSpeMin);
             this.ivGroup.Controls.Add(this.ivSpeLabel);
+            this.ivGroup.Controls.Add(this.ivSpdMax);
             this.ivGroup.Controls.Add(this.ivSpdMin);
             this.ivGroup.Controls.Add(this.ivSpdLabel);
+            this.ivGroup.Controls.Add(this.ivSpaMax);
             this.ivGroup.Controls.Add(this.ivSpaMin);
             this.ivGroup.Controls.Add(this.ivSpaLabel);
+            this.ivGroup.Controls.Add(this.ivDefMax);
             this.ivGroup.Controls.Add(this.ivDefMin);
             this.ivGroup.Controls.Add(this.ivDefLabel);
+            this.ivGroup.Controls.Add(this.ivAtkMax);
             this.ivGroup.Controls.Add(this.ivAtkMin);
             this.ivGroup.Controls.Add(this.ivAtkLabel);
+            this.ivGroup.Controls.Add(this.ivHpMax);
             this.ivGroup.Controls.Add(this.ivHpMin);
             this.ivGroup.Controls.Add(this.ivHpLabel);
-            this.ivGroup.Location = new System.Drawing.Point(8, 300);
+            this.ivGroup.Location = new System.Drawing.Point(8, 260);
             this.ivGroup.Name = "ivGroup";
-            this.ivGroup.Size = new System.Drawing.Size(330, 100);
+            this.ivGroup.Size = new System.Drawing.Size(330, 180);
             this.ivGroup.TabIndex = 2;
             this.ivGroup.TabStop = false;
-            this.ivGroup.Text = "Minimum IVs (0 = Any)";
+            this.ivGroup.Text = "IV Ranges";
+
+            // ivMinLabel
+            this.ivMinLabel.AutoSize = true;
+            this.ivMinLabel.Location = new System.Drawing.Point(40, 20);
+            this.ivMinLabel.Name = "ivMinLabel";
+            this.ivMinLabel.Size = new System.Drawing.Size(28, 15);
+            this.ivMinLabel.TabIndex = 0;
+            this.ivMinLabel.Text = "Min";
+
+            // ivMaxLabel
+            this.ivMaxLabel.AutoSize = true;
+            this.ivMaxLabel.Location = new System.Drawing.Point(85, 20);
+            this.ivMaxLabel.Name = "ivMaxLabel";
+            this.ivMaxLabel.Size = new System.Drawing.Size(30, 15);
+            this.ivMaxLabel.TabIndex = 1;
+            this.ivMaxLabel.Text = "Max";
 
             // ivHpLabel
             this.ivHpLabel.AutoSize = true;
-            this.ivHpLabel.Location = new System.Drawing.Point(10, 30);
+            this.ivHpLabel.Location = new System.Drawing.Point(10, 45);
             this.ivHpLabel.Name = "ivHpLabel";
             this.ivHpLabel.Size = new System.Drawing.Size(26, 15);
-            this.ivHpLabel.TabIndex = 0;
+            this.ivHpLabel.TabIndex = 2;
             this.ivHpLabel.Text = "HP:";
 
             // ivHpMin
-            this.ivHpMin.Location = new System.Drawing.Point(40, 28);
+            this.ivHpMin.Location = new System.Drawing.Point(40, 43);
             this.ivHpMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivHpMin.Name = "ivHpMin";
             this.ivHpMin.Size = new System.Drawing.Size(40, 23);
-            this.ivHpMin.TabIndex = 1;
+            this.ivHpMin.TabIndex = 3;
+
+            // ivHpMax
+            this.ivHpMax.Location = new System.Drawing.Point(85, 43);
+            this.ivHpMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivHpMax.Name = "ivHpMax";
+            this.ivHpMax.Size = new System.Drawing.Size(40, 23);
+            this.ivHpMax.TabIndex = 4;
+            this.ivHpMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // ivAtkLabel
             this.ivAtkLabel.AutoSize = true;
-            this.ivAtkLabel.Location = new System.Drawing.Point(90, 30);
+            this.ivAtkLabel.Location = new System.Drawing.Point(130, 45);
             this.ivAtkLabel.Name = "ivAtkLabel";
             this.ivAtkLabel.Size = new System.Drawing.Size(30, 15);
-            this.ivAtkLabel.TabIndex = 2;
+            this.ivAtkLabel.TabIndex = 5;
             this.ivAtkLabel.Text = "ATK:";
 
             // ivAtkMin
-            this.ivAtkMin.Location = new System.Drawing.Point(125, 28);
+            this.ivAtkMin.Location = new System.Drawing.Point(165, 43);
             this.ivAtkMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivAtkMin.Name = "ivAtkMin";
             this.ivAtkMin.Size = new System.Drawing.Size(40, 23);
-            this.ivAtkMin.TabIndex = 3;
+            this.ivAtkMin.TabIndex = 6;
+
+            // ivAtkMax
+            this.ivAtkMax.Location = new System.Drawing.Point(210, 43);
+            this.ivAtkMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivAtkMax.Name = "ivAtkMax";
+            this.ivAtkMax.Size = new System.Drawing.Size(40, 23);
+            this.ivAtkMax.TabIndex = 7;
+            this.ivAtkMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // ivDefLabel
             this.ivDefLabel.AutoSize = true;
-            this.ivDefLabel.Location = new System.Drawing.Point(175, 30);
+            this.ivDefLabel.Location = new System.Drawing.Point(10, 75);
             this.ivDefLabel.Name = "ivDefLabel";
             this.ivDefLabel.Size = new System.Drawing.Size(30, 15);
-            this.ivDefLabel.TabIndex = 4;
+            this.ivDefLabel.TabIndex = 8;
             this.ivDefLabel.Text = "DEF:";
 
             // ivDefMin
-            this.ivDefMin.Location = new System.Drawing.Point(210, 28);
+            this.ivDefMin.Location = new System.Drawing.Point(40, 73);
             this.ivDefMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivDefMin.Name = "ivDefMin";
             this.ivDefMin.Size = new System.Drawing.Size(40, 23);
-            this.ivDefMin.TabIndex = 5;
+            this.ivDefMin.TabIndex = 9;
+
+            // ivDefMax
+            this.ivDefMax.Location = new System.Drawing.Point(85, 73);
+            this.ivDefMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivDefMax.Name = "ivDefMax";
+            this.ivDefMax.Size = new System.Drawing.Size(40, 23);
+            this.ivDefMax.TabIndex = 10;
+            this.ivDefMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // ivSpaLabel
             this.ivSpaLabel.AutoSize = true;
-            this.ivSpaLabel.Location = new System.Drawing.Point(10, 60);
+            this.ivSpaLabel.Location = new System.Drawing.Point(130, 75);
             this.ivSpaLabel.Name = "ivSpaLabel";
             this.ivSpaLabel.Size = new System.Drawing.Size(29, 15);
-            this.ivSpaLabel.TabIndex = 6;
+            this.ivSpaLabel.TabIndex = 11;
             this.ivSpaLabel.Text = "SPA:";
 
             // ivSpaMin
-            this.ivSpaMin.Location = new System.Drawing.Point(40, 58);
+            this.ivSpaMin.Location = new System.Drawing.Point(165, 73);
             this.ivSpaMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivSpaMin.Name = "ivSpaMin";
             this.ivSpaMin.Size = new System.Drawing.Size(40, 23);
-            this.ivSpaMin.TabIndex = 7;
+            this.ivSpaMin.TabIndex = 12;
+
+            // ivSpaMax
+            this.ivSpaMax.Location = new System.Drawing.Point(210, 73);
+            this.ivSpaMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivSpaMax.Name = "ivSpaMax";
+            this.ivSpaMax.Size = new System.Drawing.Size(40, 23);
+            this.ivSpaMax.TabIndex = 13;
+            this.ivSpaMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // ivSpdLabel
             this.ivSpdLabel.AutoSize = true;
-            this.ivSpdLabel.Location = new System.Drawing.Point(90, 60);
+            this.ivSpdLabel.Location = new System.Drawing.Point(10, 105);
             this.ivSpdLabel.Name = "ivSpdLabel";
             this.ivSpdLabel.Size = new System.Drawing.Size(30, 15);
-            this.ivSpdLabel.TabIndex = 8;
+            this.ivSpdLabel.TabIndex = 14;
             this.ivSpdLabel.Text = "SPD:";
 
             // ivSpdMin
-            this.ivSpdMin.Location = new System.Drawing.Point(125, 58);
+            this.ivSpdMin.Location = new System.Drawing.Point(40, 103);
             this.ivSpdMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivSpdMin.Name = "ivSpdMin";
             this.ivSpdMin.Size = new System.Drawing.Size(40, 23);
-            this.ivSpdMin.TabIndex = 9;
+            this.ivSpdMin.TabIndex = 15;
+
+            // ivSpdMax
+            this.ivSpdMax.Location = new System.Drawing.Point(85, 103);
+            this.ivSpdMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivSpdMax.Name = "ivSpdMax";
+            this.ivSpdMax.Size = new System.Drawing.Size(40, 23);
+            this.ivSpdMax.TabIndex = 16;
+            this.ivSpdMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // ivSpeLabel
             this.ivSpeLabel.AutoSize = true;
-            this.ivSpeLabel.Location = new System.Drawing.Point(175, 60);
+            this.ivSpeLabel.Location = new System.Drawing.Point(130, 105);
             this.ivSpeLabel.Name = "ivSpeLabel";
             this.ivSpeLabel.Size = new System.Drawing.Size(28, 15);
-            this.ivSpeLabel.TabIndex = 10;
+            this.ivSpeLabel.TabIndex = 17;
             this.ivSpeLabel.Text = "SPE:";
 
             // ivSpeMin
-            this.ivSpeMin.Location = new System.Drawing.Point(210, 58);
+            this.ivSpeMin.Location = new System.Drawing.Point(165, 103);
             this.ivSpeMin.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
             this.ivSpeMin.Name = "ivSpeMin";
             this.ivSpeMin.Size = new System.Drawing.Size(40, 23);
-            this.ivSpeMin.TabIndex = 11;
+            this.ivSpeMin.TabIndex = 18;
+
+            // ivSpeMax
+            this.ivSpeMax.Location = new System.Drawing.Point(210, 103);
+            this.ivSpeMax.Maximum = new decimal(new int[] { 31, 0, 0, 0 });
+            this.ivSpeMax.Name = "ivSpeMax";
+            this.ivSpeMax.Size = new System.Drawing.Size(40, 23);
+            this.ivSpeMax.TabIndex = 19;
+            this.ivSpeMax.Value = new decimal(new int[] { 31, 0, 0, 0 });
 
             // searchOptionsGroup
             this.searchOptionsGroup.Controls.Add(this.exportButton);
             this.searchOptionsGroup.Controls.Add(this.searchButton);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsNum);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsLabel);
-            this.searchOptionsGroup.Location = new System.Drawing.Point(8, 406);
+            this.searchOptionsGroup.Location = new System.Drawing.Point(8, 446);
             this.searchOptionsGroup.Name = "searchOptionsGroup";
             this.searchOptionsGroup.Size = new System.Drawing.Size(330, 100);
             this.searchOptionsGroup.TabIndex = 3;
@@ -447,7 +539,7 @@ namespace AutoModPlugins.GUI
             this.resultsPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.resultsPanel.Location = new System.Drawing.Point(0, 0);
             this.resultsPanel.Name = "resultsPanel";
-            this.resultsPanel.Size = new System.Drawing.Size(546, 578);
+            this.resultsPanel.Size = new System.Drawing.Size(546, 628);
             this.resultsPanel.TabIndex = 0;
 
             // resultsGrid
@@ -469,7 +561,7 @@ namespace AutoModPlugins.GUI
             this.resultsGrid.ReadOnly = true;
             this.resultsGrid.RowTemplate.Height = 25;
             this.resultsGrid.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.resultsGrid.Size = new System.Drawing.Size(546, 578);
+            this.resultsGrid.Size = new System.Drawing.Size(546, 628);
             this.resultsGrid.TabIndex = 0;
             this.resultsGrid.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.ResultsGrid_CellDoubleClick);
 
@@ -477,7 +569,7 @@ namespace AutoModPlugins.GUI
             this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
                 this.statusLabel,
                 this.progressBar});
-            this.statusStrip.Location = new System.Drawing.Point(0, 578);
+            this.statusStrip.Location = new System.Drawing.Point(0, 628);
             this.statusStrip.Name = "statusStrip";
             this.statusStrip.Size = new System.Drawing.Size(900, 22);
             this.statusStrip.TabIndex = 1;
@@ -516,11 +608,17 @@ namespace AutoModPlugins.GUI
             this.searchOptionsGroup.ResumeLayout(false);
             this.searchOptionsGroup.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.ivHpMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivHpMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivAtkMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivAtkMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivDefMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivDefMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpaMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpaMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpdMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpdMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ivSpeMin)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ivSpeMax)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.maxSeedsNum)).EndInit();
             this.resultsPanel.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.resultsGrid)).EndInit();
@@ -556,18 +654,26 @@ namespace AutoModPlugins.GUI
         private System.Windows.Forms.ComboBox shinyCombo;
 
         private System.Windows.Forms.GroupBox ivGroup;
+        private System.Windows.Forms.Label ivMinLabel;
+        private System.Windows.Forms.Label ivMaxLabel;
         private System.Windows.Forms.Label ivHpLabel;
         private System.Windows.Forms.NumericUpDown ivHpMin;
+        private System.Windows.Forms.NumericUpDown ivHpMax;
         private System.Windows.Forms.Label ivAtkLabel;
         private System.Windows.Forms.NumericUpDown ivAtkMin;
+        private System.Windows.Forms.NumericUpDown ivAtkMax;
         private System.Windows.Forms.Label ivDefLabel;
         private System.Windows.Forms.NumericUpDown ivDefMin;
+        private System.Windows.Forms.NumericUpDown ivDefMax;
         private System.Windows.Forms.Label ivSpaLabel;
         private System.Windows.Forms.NumericUpDown ivSpaMin;
+        private System.Windows.Forms.NumericUpDown ivSpaMax;
         private System.Windows.Forms.Label ivSpdLabel;
         private System.Windows.Forms.NumericUpDown ivSpdMin;
+        private System.Windows.Forms.NumericUpDown ivSpdMax;
         private System.Windows.Forms.Label ivSpeLabel;
         private System.Windows.Forms.NumericUpDown ivSpeMin;
+        private System.Windows.Forms.NumericUpDown ivSpeMax;
 
         private System.Windows.Forms.GroupBox searchOptionsGroup;
         private System.Windows.Forms.Label maxSeedsLabel;
