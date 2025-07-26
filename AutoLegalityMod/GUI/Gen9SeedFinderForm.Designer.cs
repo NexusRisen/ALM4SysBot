@@ -66,6 +66,10 @@ namespace AutoModPlugins.GUI
             this.searchOptionsGroup = new System.Windows.Forms.GroupBox();
             this.maxSeedsLabel = new System.Windows.Forms.Label();
             this.maxSeedsNum = new System.Windows.Forms.NumericUpDown();
+            this.startSeedLabel = new System.Windows.Forms.Label();
+            this.startSeedTextBox = new System.Windows.Forms.TextBox();
+            this.endSeedLabel = new System.Windows.Forms.Label();
+            this.endSeedTextBox = new System.Windows.Forms.TextBox();
             this.searchButton = new System.Windows.Forms.Button();
             this.exportButton = new System.Windows.Forms.Button();
 
@@ -510,11 +514,15 @@ namespace AutoModPlugins.GUI
             // searchOptionsGroup
             this.searchOptionsGroup.Controls.Add(this.exportButton);
             this.searchOptionsGroup.Controls.Add(this.searchButton);
+            this.searchOptionsGroup.Controls.Add(this.endSeedTextBox);
+            this.searchOptionsGroup.Controls.Add(this.endSeedLabel);
+            this.searchOptionsGroup.Controls.Add(this.startSeedTextBox);
+            this.searchOptionsGroup.Controls.Add(this.startSeedLabel);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsNum);
             this.searchOptionsGroup.Controls.Add(this.maxSeedsLabel);
             this.searchOptionsGroup.Location = new System.Drawing.Point(8, 476);
             this.searchOptionsGroup.Name = "searchOptionsGroup";
-            this.searchOptionsGroup.Size = new System.Drawing.Size(330, 100);
+            this.searchOptionsGroup.Size = new System.Drawing.Size(330, 130);
             this.searchOptionsGroup.TabIndex = 3;
             this.searchOptionsGroup.TabStop = false;
             this.searchOptionsGroup.Text = "Search Options";
@@ -536,20 +544,54 @@ namespace AutoModPlugins.GUI
             this.maxSeedsNum.TabIndex = 1;
             this.maxSeedsNum.Value = new decimal(new int[] { 100, 0, 0, 0 });
 
+            // startSeedLabel
+            this.startSeedLabel.AutoSize = true;
+            this.startSeedLabel.Location = new System.Drawing.Point(10, 60);
+            this.startSeedLabel.Name = "startSeedLabel";
+            this.startSeedLabel.Size = new System.Drawing.Size(63, 15);
+            this.startSeedLabel.TabIndex = 2;
+            this.startSeedLabel.Text = "Start Seed:";
+
+            // startSeedTextBox
+            this.startSeedTextBox.Location = new System.Drawing.Point(90, 57);
+            this.startSeedTextBox.MaxLength = 8;
+            this.startSeedTextBox.Name = "startSeedTextBox";
+            this.startSeedTextBox.Size = new System.Drawing.Size(80, 23);
+            this.startSeedTextBox.TabIndex = 3;
+            this.startSeedTextBox.Text = "00000000";
+            this.startSeedTextBox.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+
+            // endSeedLabel
+            this.endSeedLabel.AutoSize = true;
+            this.endSeedLabel.Location = new System.Drawing.Point(180, 60);
+            this.endSeedLabel.Name = "endSeedLabel";
+            this.endSeedLabel.Size = new System.Drawing.Size(59, 15);
+            this.endSeedLabel.TabIndex = 4;
+            this.endSeedLabel.Text = "End Seed:";
+
+            // endSeedTextBox
+            this.endSeedTextBox.Location = new System.Drawing.Point(240, 57);
+            this.endSeedTextBox.MaxLength = 8;
+            this.endSeedTextBox.Name = "endSeedTextBox";
+            this.endSeedTextBox.Size = new System.Drawing.Size(80, 23);
+            this.endSeedTextBox.TabIndex = 5;
+            this.endSeedTextBox.Text = "FFFFFFFF";
+            this.endSeedTextBox.CharacterCasing = System.Windows.Forms.CharacterCasing.Upper;
+
             // searchButton
-            this.searchButton.Location = new System.Drawing.Point(10, 60);
+            this.searchButton.Location = new System.Drawing.Point(10, 90);
             this.searchButton.Name = "searchButton";
             this.searchButton.Size = new System.Drawing.Size(150, 30);
-            this.searchButton.TabIndex = 2;
+            this.searchButton.TabIndex = 6;
             this.searchButton.Text = "Search";
             this.searchButton.UseVisualStyleBackColor = true;
             this.searchButton.Click += new System.EventHandler(this.SearchButton_Click);
 
             // exportButton
-            this.exportButton.Location = new System.Drawing.Point(170, 60);
+            this.exportButton.Location = new System.Drawing.Point(170, 90);
             this.exportButton.Name = "exportButton";
             this.exportButton.Size = new System.Drawing.Size(150, 30);
-            this.exportButton.TabIndex = 3;
+            this.exportButton.TabIndex = 7;
             this.exportButton.Text = "Export Results";
             this.exportButton.UseVisualStyleBackColor = true;
             this.exportButton.Click += new System.EventHandler(this.ExportButton_Click);
@@ -718,6 +760,10 @@ namespace AutoModPlugins.GUI
         private System.Windows.Forms.GroupBox searchOptionsGroup;
         private System.Windows.Forms.Label maxSeedsLabel;
         private System.Windows.Forms.NumericUpDown maxSeedsNum;
+        private System.Windows.Forms.Label startSeedLabel;
+        private System.Windows.Forms.TextBox startSeedTextBox;
+        private System.Windows.Forms.Label endSeedLabel;
+        private System.Windows.Forms.TextBox endSeedTextBox;
         private System.Windows.Forms.Button searchButton;
         private System.Windows.Forms.Button exportButton;
 

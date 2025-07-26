@@ -816,24 +816,61 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private void SearchSeeds(int species, byte form, EncounterCriteria criteria, ITeraRaid9? specificEncounter, CancellationToken token)
     {
-        var rand = new Random();
-        var maxSeeds = (int)maxSeedsNum.Value;
-        var seedsChecked = 0;
+        var maxResults = (int)maxSeedsNum.Value;
         var results = new List<SeedResult>();
         var ivRanges = GetIVRanges();
 
-        while (results.Count < maxSeeds && !token.IsCancellationRequested)
+        // Parse seed range from UI
+        uint startSeed = 0x00000000;
+        uint endSeed = 0xFFFFFFFF;
+
+        if (!string.IsNullOrEmpty(startSeedTextBox?.Text))
         {
-            // Generate full 32-bit seed using two Random.Next() calls
-            var seed = GetRandomUInt32(rand);
+            if (uint.TryParse(startSeedTextBox.Text, System.Globalization.NumberStyles.HexNumber, null, out uint parsedStart))
+            {
+                startSeed = parsedStart;
+            }
+            else
+            {
+                this.Invoke(() => WinFormsUtil.Alert("Invalid start seed format. Using default 00000000."));
+            }
+        }
+
+        if (!string.IsNullOrEmpty(endSeedTextBox?.Text))
+        {
+            if (uint.TryParse(endSeedTextBox.Text, System.Globalization.NumberStyles.HexNumber, null, out uint parsedEnd))
+            {
+                endSeed = parsedEnd;
+            }
+            else
+            {
+                this.Invoke(() => WinFormsUtil.Alert("Invalid end seed format. Using default FFFFFFFF."));
+            }
+        }
+
+        if (startSeed > endSeed)
+        {
+            this.Invoke(() => WinFormsUtil.Alert("Start seed must be less than or equal to end seed!"));
+            return;
+        }
+
+        uint seedsChecked = 0;
+        uint lastProgressUpdate = 0;
+
+        for (uint seed = startSeed; seed <= endSeed && results.Count < maxResults && !token.IsCancellationRequested; seed++)
+        {
             seedsChecked++;
 
-            if (seedsChecked % 1000 == 0)
+            // Update progress every 10000 seeds to avoid UI slowdown
+            if (seedsChecked - lastProgressUpdate >= 10000)
             {
+                lastProgressUpdate = seedsChecked;
                 this.Invoke(() =>
                 {
-                    progressBar.Value = (results.Count * 100) / maxSeeds;
-                    statusLabel.Text = $"Checked {seedsChecked:N0} seeds, found {results.Count}";
+                    // Calculate progress based on seeds checked vs total possible
+                    var progressPercent = (int)((seedsChecked / (double)(endSeed - startSeed + 1)) * 100);
+                    progressBar.Value = Math.Min(progressPercent, 100);
+                    statusLabel.Text = $"Seed: {seed:X8} | Checked {seedsChecked:N0} ({progressPercent:F2}%), found {results.Count}";
                 });
             }
 
@@ -905,6 +942,10 @@ public partial class Gen9SeedFinderForm : Form
 
             results.Add(result);
             AddResultToGrid(result);
+
+            // Break early if we're at the last seed to avoid overflow
+            if (seed == endSeed)
+                break;
         }
 
         _results = results;
@@ -914,17 +955,6 @@ public partial class Gen9SeedFinderForm : Form
             statusLabel.Text = $"Found {results.Count} matches after checking {seedsChecked:N0} seeds";
             progressBar.Value = 100;
         });
-    }
-
-    /// <summary>
-    /// Generates a random 32-bit unsigned integer
-    /// </summary>
-    private static uint GetRandomUInt32(Random rand)
-    {
-        // Generate full 32-bit value by combining two random values
-        Span<byte> bytes = stackalloc byte[4];
-        rand.NextBytes(bytes);
-        return BitConverter.ToUInt32(bytes);
     }
 
     /// <summary>
