@@ -119,6 +119,7 @@ public partial class Gen9SeedFinderForm : Form
         UpdateFormList(species);
         UpdateEncounterList(species);
         UpdateSourceDisplay();
+        ValidateCurrentSelection();
     }
 
     /// <summary>
@@ -209,7 +210,327 @@ public partial class Gen9SeedFinderForm : Form
         encounterCombo.DisplayMember = "Text";
         encounterCombo.ValueMember = "Value";
         encounterCombo.DataSource = items;
+
+        // Add event handler for encounter selection
+        encounterCombo.SelectedIndexChanged -= EncounterCombo_SelectedIndexChanged;
+        encounterCombo.SelectedIndexChanged += EncounterCombo_SelectedIndexChanged;
     }
+
+    /// <summary>
+    /// Handles encounter selection change for validation
+    /// </summary>
+    private void EncounterCombo_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        ValidateCurrentSelection();
+    }
+
+    /// <summary>
+    /// Validates the current selection and updates UI to show constraints
+    /// </summary>
+    private void ValidateCurrentSelection()
+    {
+        var selectedEncounter = (encounterCombo.SelectedItem as EncounterItem)?.Encounter;
+        if (selectedEncounter == null)
+        {
+            // No specific encounter selected, reset constraints
+            ResetConstraintHighlights();
+            return;
+        }
+
+        var warnings = new List<string>();
+
+        // Check shiny constraints
+        if (selectedEncounter.Shiny != Shiny.Random)
+        {
+            var requiredShiny = selectedEncounter.Shiny switch
+            {
+                Shiny.Never => 1, // "Never" index
+                Shiny.Always => 2, // "Always" index
+                _ => 0
+            };
+
+            if (shinyCombo.SelectedIndex != 0 && shinyCombo.SelectedIndex != requiredShiny)
+            {
+                warnings.Add($"This encounter is {(selectedEncounter.Shiny == Shiny.Never ? "never shiny" : "always shiny")}");
+                shinyCombo.BackColor = Color.MistyRose;
+            }
+            else
+            {
+                shinyCombo.BackColor = SystemColors.Window;
+            }
+        }
+        else
+        {
+            shinyCombo.BackColor = SystemColors.Window;
+        }
+
+        // Check IV constraints
+        bool hasIVConstraints = false;
+        if (selectedEncounter is EncounterMight9 might)
+        {
+            // 7* raids always have 6 flawless IVs
+            hasIVConstraints = true;
+            ValidateIVConstraints(6, might.IVs, warnings);
+        }
+        else if (selectedEncounter is EncounterDist9 dist)
+        {
+            hasIVConstraints = true;
+            ValidateIVConstraints(dist.FlawlessIVCount, dist.IVs, warnings);
+        }
+        else if (selectedEncounter is EncounterTera9 tera)
+        {
+            hasIVConstraints = tera.FlawlessIVCount > 0;
+            ValidateIVConstraints(tera.FlawlessIVCount, default, warnings);
+        }
+
+        if (!hasIVConstraints)
+        {
+            ResetIVHighlights();
+        }
+
+        // Check gender constraints
+        if (selectedEncounter.Gender != FixedGenderUtil.GenderRandom)
+        {
+            var requiredGender = selectedEncounter.Gender switch
+            {
+                0 => 1, // Male
+                1 => 2, // Female
+                2 => 3, // Genderless
+                _ => 0
+            };
+
+            if (genderCombo.SelectedIndex != 0 && genderCombo.SelectedIndex != requiredGender)
+            {
+                warnings.Add($"This encounter has fixed gender: {GetGenderName(selectedEncounter.Gender)}");
+                genderCombo.BackColor = Color.MistyRose;
+            }
+            else
+            {
+                genderCombo.BackColor = SystemColors.Window;
+            }
+        }
+        else
+        {
+            genderCombo.BackColor = SystemColors.Window;
+        }
+
+        // Check nature constraints
+        if (selectedEncounter is IFixedNature fn && fn.Nature != Nature.Random)
+        {
+            var requiredNature = (int)fn.Nature + 1; // +1 because index 0 is "Any"
+
+            if (natureCombo.SelectedIndex != 0 && natureCombo.SelectedIndex != requiredNature)
+            {
+                warnings.Add($"This encounter has fixed nature: {fn.Nature}");
+                natureCombo.BackColor = Color.MistyRose;
+            }
+            else
+            {
+                natureCombo.BackColor = SystemColors.Window;
+            }
+        }
+        else
+        {
+            natureCombo.BackColor = SystemColors.Window;
+        }
+
+        // Check ability constraints
+        if (selectedEncounter.Ability != AbilityPermission.Any12H)
+        {
+            var validAbility = IsAbilitySelectionValid(selectedEncounter.Ability, (AbilityPermission)GetAbilityPermission());
+            if (!validAbility && abilityCombo.SelectedIndex != 0)
+            {
+                warnings.Add($"This encounter has ability constraint: {GetAbilityConstraintText(selectedEncounter.Ability)}");
+                abilityCombo.BackColor = Color.MistyRose;
+            }
+            else
+            {
+                abilityCombo.BackColor = SystemColors.Window;
+            }
+        }
+        else
+        {
+            abilityCombo.BackColor = SystemColors.Window;
+        }
+
+        // Update status with warnings
+        if (warnings.Count > 0)
+        {
+            statusLabel.Text = $"⚠️ {string.Join(" | ", warnings)}";
+            statusLabel.ForeColor = Color.DarkRed;
+        }
+        else
+        {
+            UpdateSourceDisplay();
+            statusLabel.ForeColor = SystemColors.ControlText;
+        }
+    }
+
+    /// <summary>
+    /// Validates IV constraints and highlights invalid selections
+    /// </summary>
+    private void ValidateIVConstraints(byte flawlessCount, IndividualValueSet fixedIVs, List<string> warnings)
+    {
+        bool hasInvalidIV = false;
+        var ivControls = new[]
+        {
+            (Min: ivHpMin, Max: ivHpMax, Name: "HP", Fixed: fixedIVs.HP),
+            (Min: ivAtkMin, Max: ivAtkMax, Name: "Atk", Fixed: fixedIVs.ATK),
+            (Min: ivDefMin, Max: ivDefMax, Name: "Def", Fixed: fixedIVs.DEF),
+            (Min: ivSpaMin, Max: ivSpaMax, Name: "SpA", Fixed: fixedIVs.SPA),
+            (Min: ivSpdMin, Max: ivSpdMax, Name: "SpD", Fixed: fixedIVs.SPD),
+            (Min: ivSpeMin, Max: ivSpeMax, Name: "Spe", Fixed: fixedIVs.SPE),
+        };
+
+        // Check fixed IVs first
+        if (fixedIVs.IsSpecified)
+        {
+            foreach (var (Min, Max, Name, Fixed) in ivControls)
+            {
+                if (Fixed != -1)
+                {
+                    if (Min.Value > Fixed || Max.Value < Fixed)
+                    {
+                        Min.BackColor = Color.MistyRose;
+                        Max.BackColor = Color.MistyRose;
+                        hasInvalidIV = true;
+                    }
+                    else
+                    {
+                        Min.BackColor = SystemColors.Window;
+                        Max.BackColor = SystemColors.Window;
+                    }
+                }
+                else
+                {
+                    Min.BackColor = SystemColors.Window;
+                    Max.BackColor = SystemColors.Window;
+                }
+            }
+
+            if (hasInvalidIV)
+            {
+                warnings.Add($"This encounter has fixed IVs: {GetFixedIVString(fixedIVs)}");
+            }
+        }
+        else if (flawlessCount > 0)
+        {
+            // For flawless IVs without fixed positions, check if user is excluding 31
+            int possibleFlawlessSlots = 0;
+            foreach (var (Min, Max, Name, _) in ivControls)
+            {
+                if (Max.Value >= 31)
+                    possibleFlawlessSlots++;
+            }
+
+            if (possibleFlawlessSlots < flawlessCount)
+            {
+                // Highlight all IV controls that don't allow 31
+                foreach (var (Min, Max, Name, _) in ivControls)
+                {
+                    if (Max.Value < 31)
+                    {
+                        Max.BackColor = Color.MistyRose;
+                        hasInvalidIV = true;
+                    }
+                    else
+                    {
+                        Min.BackColor = SystemColors.Window;
+                        Max.BackColor = SystemColors.Window;
+                    }
+                }
+
+                warnings.Add($"This encounter has {flawlessCount} guaranteed perfect IVs");
+            }
+            else
+            {
+                ResetIVHighlights();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Gets a string representation of fixed IVs
+    /// </summary>
+    private static string GetFixedIVString(IndividualValueSet ivs)
+    {
+        var parts = new List<string>();
+        if (ivs.HP != -1) parts.Add($"HP:{ivs.HP}");
+        if (ivs.ATK != -1) parts.Add($"Atk:{ivs.ATK}");
+        if (ivs.DEF != -1) parts.Add($"Def:{ivs.DEF}");
+        if (ivs.SPA != -1) parts.Add($"SpA:{ivs.SPA}");
+        if (ivs.SPD != -1) parts.Add($"SpD:{ivs.SPD}");
+        if (ivs.SPE != -1) parts.Add($"Spe:{ivs.SPE}");
+        return string.Join(" ", parts);
+    }
+
+    /// <summary>
+    /// Resets constraint highlights on all controls
+    /// </summary>
+    private void ResetConstraintHighlights()
+    {
+        shinyCombo.BackColor = SystemColors.Window;
+        genderCombo.BackColor = SystemColors.Window;
+        natureCombo.BackColor = SystemColors.Window;
+        abilityCombo.BackColor = SystemColors.Window;
+        ResetIVHighlights();
+    }
+
+    /// <summary>
+    /// Resets IV control highlights
+    /// </summary>
+    private void ResetIVHighlights()
+    {
+        ivHpMin.BackColor = ivHpMax.BackColor = SystemColors.Window;
+        ivAtkMin.BackColor = ivAtkMax.BackColor = SystemColors.Window;
+        ivDefMin.BackColor = ivDefMax.BackColor = SystemColors.Window;
+        ivSpaMin.BackColor = ivSpaMax.BackColor = SystemColors.Window;
+        ivSpdMin.BackColor = ivSpdMax.BackColor = SystemColors.Window;
+        ivSpeMin.BackColor = ivSpeMax.BackColor = SystemColors.Window;
+    }
+
+    /// <summary>
+    /// Checks if ability selection is valid for the encounter
+    /// </summary>
+    private static bool IsAbilitySelectionValid(AbilityPermission encounterAbility, AbilityPermission selectedAbility)
+    {
+        if (selectedAbility == AbilityPermission.Any12H) // "Any" selection
+            return true;
+
+        return (encounterAbility, selectedAbility) switch
+        {
+            (AbilityPermission.OnlyFirst, AbilityPermission.OnlyFirst) => true,
+            (AbilityPermission.OnlySecond, AbilityPermission.OnlySecond) => true,
+            (AbilityPermission.OnlyHidden, AbilityPermission.OnlyHidden) => true,
+            (AbilityPermission.Any12, AbilityPermission.Any12) => true,
+            (AbilityPermission.Any12, AbilityPermission.OnlyFirst) => true,
+            (AbilityPermission.Any12, AbilityPermission.OnlySecond) => true,
+            _ => false
+        };
+    }
+
+    /// <summary>
+    /// Gets display text for ability constraints
+    /// </summary>
+    private static string GetAbilityConstraintText(AbilityPermission ability) => ability switch
+    {
+        AbilityPermission.OnlyFirst => "Ability 1 only",
+        AbilityPermission.OnlySecond => "Ability 2 only",
+        AbilityPermission.OnlyHidden => "Hidden Ability only",
+        AbilityPermission.Any12 => "Ability 1 or 2 only",
+        _ => "Any"
+    };
+
+    /// <summary>
+    /// Gets gender name for display
+    /// </summary>
+    private static string GetGenderName(byte gender) => gender switch
+    {
+        0 => "Male",
+        1 => "Female",
+        2 => "Genderless",
+        _ => "Unknown"
+    };
 
     /// <summary>
     /// Filters encounters by species
@@ -233,6 +554,15 @@ public partial class Gen9SeedFinderForm : Form
         if (speciesCombo.SelectedValue is not int species)
         {
             WinFormsUtil.Alert("Please select a species!");
+            return;
+        }
+
+        // Validate search criteria
+        var validationErrors = ValidateSearchCriteria();
+        if (validationErrors.Count > 0)
+        {
+            var message = "The following search criteria will never find results:\n\n" + string.Join("\n", validationErrors);
+            WinFormsUtil.Alert(message);
             return;
         }
 
@@ -263,6 +593,138 @@ public partial class Gen9SeedFinderForm : Form
             progressBar.Visible = false;
             _searchCts?.Dispose();
             _searchCts = null;
+        }
+    }
+
+    /// <summary>
+    /// Validates search criteria before starting search
+    /// </summary>
+    private List<string> ValidateSearchCriteria()
+    {
+        var errors = new List<string>();
+        var selectedEncounter = (encounterCombo.SelectedItem as EncounterItem)?.Encounter;
+
+        if (selectedEncounter == null)
+            return errors; // No specific encounter selected, all criteria are potentially valid
+
+        // Check shiny
+        if (selectedEncounter.Shiny == Shiny.Never && shinyCombo.SelectedIndex == 2) // Always shiny selected
+        {
+            errors.Add("• This encounter is never shiny, but you selected 'Always' shiny");
+        }
+        else if (selectedEncounter.Shiny == Shiny.Always && shinyCombo.SelectedIndex == 1) // Never shiny selected
+        {
+            errors.Add("• This encounter is always shiny, but you selected 'Never' shiny");
+        }
+
+        // Check gender
+        if (selectedEncounter.Gender != FixedGenderUtil.GenderRandom && genderCombo.SelectedIndex != 0)
+        {
+            var encounterGender = GetGenderName(selectedEncounter.Gender);
+            var selectedGender = genderCombo.SelectedIndex switch
+            {
+                1 => "Male",
+                2 => "Female",
+                3 => "Genderless",
+                _ => "Unknown"
+            };
+
+            if (encounterGender != selectedGender)
+            {
+                errors.Add($"• This encounter is always {encounterGender}, but you selected {selectedGender}");
+            }
+        }
+
+        // Check nature
+        if (selectedEncounter is IFixedNature fn && fn.Nature != Nature.Random && natureCombo.SelectedIndex != 0)
+        {
+            var selectedNature = (Nature)(natureCombo.SelectedIndex - 1);
+            if (fn.Nature != selectedNature)
+            {
+                errors.Add($"• This encounter always has {fn.Nature} nature, but you selected {selectedNature}");
+            }
+        }
+
+        // Check IVs
+        if (selectedEncounter is EncounterMight9 might)
+        {
+            ValidateFixedIVSearch(might.IVs, errors);
+            ValidateFlawlessIVSearch(6, errors);
+        }
+        else if (selectedEncounter is EncounterDist9 dist)
+        {
+            if (dist.IVs.IsSpecified)
+            {
+                ValidateFixedIVSearch(dist.IVs, errors);
+            }
+            else if (dist.FlawlessIVCount > 0)
+            {
+                ValidateFlawlessIVSearch(dist.FlawlessIVCount, errors);
+            }
+        }
+        else if (selectedEncounter is EncounterTera9 tera && tera.FlawlessIVCount > 0)
+        {
+            ValidateFlawlessIVSearch(tera.FlawlessIVCount, errors);
+        }
+
+        // Check ability
+        if (selectedEncounter.Ability != AbilityPermission.Any12H && abilityCombo.SelectedIndex != 0)
+        {
+            var selectedAbility = GetAbilityPermission();
+            if (!IsAbilitySelectionValid(selectedEncounter.Ability, selectedAbility))
+            {
+                errors.Add($"• This encounter has {GetAbilityConstraintText(selectedEncounter.Ability)}, but your selection is incompatible");
+            }
+        }
+
+        return errors;
+    }
+
+    /// <summary>
+    /// Validates search criteria against fixed IVs
+    /// </summary>
+    private void ValidateFixedIVSearch(IndividualValueSet fixedIVs, List<string> errors)
+    {
+        var checks = new[]
+        {
+            (fixedIVs.HP, ivHpMin.Value, ivHpMax.Value, "HP"),
+            (fixedIVs.ATK, ivAtkMin.Value, ivAtkMax.Value, "Attack"),
+            (fixedIVs.DEF, ivDefMin.Value, ivDefMax.Value, "Defense"),
+            (fixedIVs.SPA, ivSpaMin.Value, ivSpaMax.Value, "Sp. Attack"),
+            (fixedIVs.SPD, ivSpdMin.Value, ivSpdMax.Value, "Sp. Defense"),
+            (fixedIVs.SPE, ivSpeMin.Value, ivSpeMax.Value, "Speed"),
+        };
+
+        foreach (var (fixedValue, min, max, statName) in checks)
+        {
+            if (fixedValue != -1 && (min > fixedValue || max < fixedValue))
+            {
+                errors.Add($"• {statName} is fixed to {fixedValue}, but your range is {min}-{max}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Validates search criteria against flawless IV count
+    /// </summary>
+    private void ValidateFlawlessIVSearch(byte flawlessCount, List<string> errors)
+    {
+        var maxValues = new[]
+        {
+            (ivHpMax.Value, "HP"),
+            (ivAtkMax.Value, "Attack"),
+            (ivDefMax.Value, "Defense"),
+            (ivSpaMax.Value, "Sp. Attack"),
+            (ivSpdMax.Value, "Sp. Defense"),
+            (ivSpeMax.Value, "Speed"),
+        };
+
+        var possibleFlawlessSlots = maxValues.Count(v => v.Value >= 31);
+
+        if (possibleFlawlessSlots < flawlessCount)
+        {
+            var excludedStats = maxValues.Where(v => v.Value < 31).Select(v => v.Item2).ToList();
+            errors.Add($"• This encounter has {flawlessCount} guaranteed perfect IVs, but you excluded 31 from: {string.Join(", ", excludedStats)}");
         }
     }
 
