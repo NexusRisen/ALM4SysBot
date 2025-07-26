@@ -456,28 +456,60 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria)
     {
-        // First, verify this encounter can actually be encountered with this seed
         if (!encounter.CanBeEncountered(seed))
             return null;
 
-        // Get generation parameters
         var pi = PersonalTable.SV[encounter.Species, encounter.Form];
+
+        // Get proper parameters based on encounter type
+        byte genderRatio = pi.Gender;
+        byte height = 0;
+        byte weight = 0;
+        SizeType9 scaleType = SizeType9.RANDOM;
+        byte scale = 0;
+        IndividualValueSet ivs = default;
+
+        // Extract encounter-specific properties
+        if (encounter is EncounterMight9 might)
+        {
+            // Might encounters have special gender handling
+            genderRatio = might.Gender switch
+            {
+                0 => PersonalInfo.RatioMagicMale,
+                1 => PersonalInfo.RatioMagicFemale,
+                2 => PersonalInfo.RatioMagicGenderless,
+                _ => pi.Gender
+            };
+            scaleType = might.ScaleType;
+            scale = might.Scale;
+            ivs = might.IVs;
+        }
+        else if (encounter is EncounterDist9 dist)
+        {
+            scaleType = dist.ScaleType;
+            scale = dist.Scale;
+            ivs = dist.IVs;
+        }
+        else if (encounter is EncounterTera9)
+        {
+            // Base raids don't have special scale/IV properties
+        }
+
         var param = new GenerateParam9(
             encounter.Species,
-            pi.Gender,
+            genderRatio,
             encounter.FlawlessIVCount,
             1, // roll count
-            0, // height
-            0, // weight
-            SizeType9.RANDOM, // scale type
-            0, // scale
+            height,
+            weight,
+            scaleType,
+            scale,
             encounter.Ability,
             encounter.Shiny,
             encounter is IFixedNature fn ? fn.Nature : Nature.Random,
-            encounter is EncounterDist9 dist && dist.IVs.IsSpecified ? dist.IVs : default
+            ivs
         );
 
-        // Get safe language
         int language = (int)Language.GetSafeLanguage(9, (LanguageID)_saveFileEditor.SAV.Language);
 
         var pk = new PK9
@@ -501,29 +533,29 @@ public partial class Gen9SeedFinderForm : Form
 
         try
         {
-            // Initialize RNG with seed
             var rng = new Xoroshiro128Plus(seed);
 
-            // Generate all Pokémon attributes in the exact order
-            SetEncryptionAndPID(pk, ref rng, param, encounter.Shiny == Shiny.Always);
+            // For Might encounters, enforce no shiny
+            bool forceNoShiny = encounter is EncounterMight9;
+
+            SetEncryptionAndPID(pk, ref rng, param, encounter.Shiny == Shiny.Always, forceNoShiny);
             SetIVs(pk, param, ref rng);
             SetAbility(pk, param, ref rng);
             SetGender(pk, param, ref rng);
             SetNature(pk, param, ref rng);
             SetScaleAndSize(pk, param, ref rng);
 
-            // Set Tera Type
             var teraType = Tera9RNG.GetTeraType(seed, encounter.TeraType, encounter.Species, encounter.Form);
             pk.TeraTypeOriginal = (MoveType)teraType;
 
-            // Set moves if specified
             if (encounter is IMoveset ms && ms.Moves.HasMoves)
                 pk.SetMoves(ms.Moves);
 
             // For 7-star raids, set the Mightiest Mark
             if (encounter is EncounterMight9)
             {
-                pk.SetRibbonIndex(RibbonIndex.MarkMightiest, true);
+                pk.RibbonMarkMightiest = true;
+                pk.AffixedRibbon = (sbyte)RibbonIndex.MarkMightiest;
             }
 
             // Ensure valid Met Date for Mighty Raid Pokemon
@@ -543,32 +575,31 @@ public partial class Gen9SeedFinderForm : Form
     /// <summary>
     /// Sets the Encryption Constant and PID with proper shiny handling
     /// </summary>
-    private static void SetEncryptionAndPID(PK9 pk, ref Xoroshiro128Plus rng, GenerateParam9 param, bool forceShiny)
+    private static void SetEncryptionAndPID(PK9 pk, ref Xoroshiro128Plus rng, GenerateParam9 param, bool forceShiny, bool forceNoShiny = false)
     {
         pk.EncryptionConstant = (uint)rng.NextInt(uint.MaxValue);
 
         uint fakeTID = (uint)rng.NextInt(uint.MaxValue);
         uint pid = (uint)rng.NextInt(uint.MaxValue);
 
-        if (param.Shiny == Shiny.Always || forceShiny)
+        if (forceNoShiny || param.Shiny == Shiny.Never)
+        {
+            if (ShinyUtil.GetIsShiny6(fakeTID, pid))
+                pid ^= 0x10000000;
+            if (ShinyUtil.GetIsShiny6(pk.ID32, pid))
+                pid ^= 0x10000000;
+        }
+        else if (param.Shiny == Shiny.Always || forceShiny)
         {
             var tid = (ushort)fakeTID;
             var sid = (ushort)(fakeTID >> 16);
-            if (!ShinyUtil.GetIsShiny6(fakeTID, pid)) // If not shiny vs fake TID
+            if (!ShinyUtil.GetIsShiny6(fakeTID, pid))
                 pid = ShinyUtil.GetShinyPID(tid, sid, pid, 0);
-            if (!ShinyUtil.GetIsShiny6(pk.ID32, pid)) // If not shiny vs player TID
+            if (!ShinyUtil.GetIsShiny6(pk.ID32, pid))
                 pid = ShinyUtil.GetShinyPID(pk.TID16, pk.SID16, pid, ShinyUtil.GetShinyXor(pid, fakeTID) == 0 ? 0u : 1u);
-        }
-        else if (param.Shiny == Shiny.Never)
-        {
-            if (ShinyUtil.GetIsShiny6(fakeTID, pid)) // battled
-                pid ^= 0x10000000;
-            if (ShinyUtil.GetIsShiny6(pk.ID32, pid)) // captured
-                pid ^= 0x10000000;
         }
         else // Random shiny
         {
-            // For random shiny, we need to check if it rolled shiny
             int rollCount = param.RollCount;
             bool isShiny = false;
             uint xor = 0;
