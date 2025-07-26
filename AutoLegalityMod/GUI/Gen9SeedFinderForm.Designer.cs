@@ -105,10 +105,10 @@ namespace AutoModPlugins.GUI
             // Form
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(900, 650);
+            this.ClientSize = new System.Drawing.Size(950, 650);
             this.Controls.Add(this.mainPanel);
             this.Controls.Add(this.statusStrip);
-            this.MinimumSize = new System.Drawing.Size(900, 650);
+            this.MinimumSize = new System.Drawing.Size(950, 650);
             this.Name = "Gen9SeedFinderForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Gen 9 Seed Finder";
@@ -118,7 +118,7 @@ namespace AutoModPlugins.GUI
             this.mainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.mainPanel.Location = new System.Drawing.Point(0, 0);
             this.mainPanel.Name = "mainPanel";
-            this.mainPanel.Size = new System.Drawing.Size(900, 628);
+            this.mainPanel.Size = new System.Drawing.Size(950, 628);
             this.mainPanel.TabIndex = 0;
 
             // splitContainer

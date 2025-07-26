@@ -238,9 +238,26 @@ public partial class Gen9SeedFinderForm : Form
             }
 
             // Check if this seed produces a matching encounter
-            var encounter = specificEncounter ?? FindMatchingEncounter(seed, species, form);
-            if (encounter == null)
-                continue;
+            ITeraRaid9? encounter;
+            if (specificEncounter != null)
+            {
+                // If user selected a specific encounter, check if it's form-compatible
+                if (!IsFormCompatible(specificEncounter, species, form))
+                    continue;
+
+                // Check if this seed can generate this encounter
+                if (!specificEncounter.CanBeEncountered(seed))
+                    continue;
+
+                encounter = specificEncounter;
+            }
+            else
+            {
+                // Find any matching encounter for this species/form
+                encounter = FindMatchingEncounter(seed, species, form);
+                if (encounter == null)
+                    continue;
+            }
 
             // Generate a Pokemon from this seed
             var pk = GenerateRaidPokemon(encounter, seed, criteria);
@@ -324,6 +341,27 @@ public partial class Gen9SeedFinderForm : Form
                pk.IV_SPA >= ranges[3].Min && pk.IV_SPA <= ranges[3].Max &&
                pk.IV_SPD >= ranges[4].Min && pk.IV_SPD <= ranges[4].Max &&
                pk.IV_SPE >= ranges[5].Min && pk.IV_SPE <= ranges[5].Max;
+    }
+
+    /// <summary>
+    /// Checks if an encounter is compatible with the desired form
+    /// </summary>
+    private static bool IsFormCompatible(ITeraRaid9 encounter, int species, byte form)
+    {
+        // Check if the encounter matches the species
+        if (encounter.Species != species)
+            return false;
+
+        // Check if forms match or if the encounter has a random form
+        if (encounter.Form == form)
+            return true;
+
+        // Check for random form encounters
+        if (encounter is IEncounterFormRandom efr && efr.IsRandomUnspecificForm)
+            return true;
+
+        // Check if form can change between the encounter form and desired form
+        return FormInfo.IsFormChangeable((ushort)species, encounter.Form, form, EntityContext.Gen9, EntityContext.Gen9);
     }
 
     /// <summary>
@@ -744,8 +782,25 @@ public partial class Gen9SeedFinderForm : Form
     /// </summary>
     private class EncounterItem(ITeraRaid9? encounter)
     {
-        public string Text { get; } = encounter == null ? "Any Encounter" : $"{encounter.Stars}★ {GetEncounterType(encounter)}";
+        public string Text { get; } = encounter == null ? "Any Encounter" : GetEncounterText(encounter);
         public ITeraRaid9? Encounter { get; } = encounter;
+
+        private static string GetEncounterText(ITeraRaid9 encounter)
+        {
+            var type = GetEncounterType(encounter);
+            var formName = "";
+
+            // Add form name if it's not the base form and not a random form
+            if (encounter.Form != 0 && encounter is not IEncounterFormRandom { IsRandomUnspecificForm: true })
+            {
+                var forms = FormConverter.GetFormList((ushort)encounter.Species, GameInfo.Strings.types,
+                    GameInfo.Strings.forms, GameInfo.GenderSymbolASCII, EntityContext.Gen9);
+                if (encounter.Form < forms.Length)
+                    formName = $" ({forms[encounter.Form]})";
+            }
+
+            return $"{encounter.Stars}★ {type}{formName}";
+        }
 
         /// <summary>
         /// Gets the encounter type display name
