@@ -865,6 +865,14 @@ public partial class Gen9SeedFinderForm : Form
             if (pk == null)
                 continue;
 
+            // For random form encounters, verify the generated form matches what the user is searching for
+            if (encounter is IEncounterFormRandom efr && efr.IsRandomUnspecificForm)
+            {
+                // The generated Pokémon might have a different form than what we're searching for
+                if (pk.Form != form)
+                    continue;
+            }
+
             // Check if the generated Pokemon matches our shiny criteria
             bool matchesShiny = criteria.Shiny switch
             {
