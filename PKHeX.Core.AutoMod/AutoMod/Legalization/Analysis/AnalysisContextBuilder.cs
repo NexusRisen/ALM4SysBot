@@ -19,9 +19,22 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
         context += $"Is Legal: {la.Valid}\n";
         context += $"{timeInfo}\n\n";
 
-        if (la.Valid && pk.Status == LegalizationResult.Regenerated)
+        // Make the status absolutely clear
+        if (pk.Status == LegalizationResult.Failed)
+        {
+            context += "** LEGALIZATION FAILED - This Pokémon could NOT be made legal! **\n\n";
+        }
+        else if (pk.Status == LegalizationResult.Timeout)
+        {
+            context += "** LEGALIZATION TIMED OUT - Generation took too long! **\n\n";
+        }
+        else if (la.Valid && pk.Status == LegalizationResult.Regenerated)
         {
             context += "** THIS POKÉMON IS LEGAL - No changes needed! **\n\n";
+        }
+        else
+        {
+            context += "** ISSUES DETECTED - This Pokémon has problems! **\n\n";
         }
 
         if (!la.Valid || pk.Status != LegalizationResult.Regenerated)

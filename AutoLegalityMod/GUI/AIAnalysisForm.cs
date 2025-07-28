@@ -71,7 +71,12 @@ public partial class AIAnalysisForm : Form
             var timeInfo = $"Generation time: {timer.Elapsed.TotalSeconds:F2} seconds";
             var context = _contextBuilder.BuildContext(template, almres, la, timeInfo, targetVersion);
             var aiResponse = await _aiService.AnalyzeShowdownSetAsync(input, context, _analysisCts.Token);
-            DisplayFormattedResponse(aiResponse, la.Valid, almres.Status);
+
+            // Ensure consistency between ALM status and legality analysis
+            var isActuallyLegal = almres.Status == LegalizationResult.Regenerated && la.Valid;
+            var displayStatus = isActuallyLegal ? LegalizationResult.Regenerated : LegalizationResult.Failed;
+
+            DisplayFormattedResponse(aiResponse, isActuallyLegal, displayStatus);
         }
         catch (Exception ex)
         {

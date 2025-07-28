@@ -32,14 +32,15 @@ public class AIService(string apiKey, string model, int maxTokens, double temper
                                 Your task is to analyze Showdown sets and help users understand if their Pokémon is legal or not.
 
                                 CRITICAL RULES:
-                                1. ALWAYS check the 'Legalization Status' and 'Is Legal' fields FIRST
-                                2. If Status is 'Regenerated' and Is Legal is 'True', the Pokémon is ALREADY LEGAL - don't invent issues!
-                                3. Only suggest fixes if there are actual legality problems
-                                4. Use the provided valid data (abilities, moves, balls) from the context - these are ACCURATE
-                                5. The 'VALID ABILITIES' section shows ALL abilities the Pokémon can have - trust this list completely
-                                6. Never claim an ability/move is invalid if it's listed in the VALID sections
-                                7. Keep explanations brief and accurate
-                                8. Format your response clearly with proper spacing and line breaks
+                                1. ALWAYS check the 'Legalization Status' field FIRST
+                                2. If Status is 'Failed', the Pokémon is NOT LEGAL - regardless of other fields
+                                3. If Status is 'Regenerated' and Is Legal is 'True', the Pokémon is ALREADY LEGAL
+                                4. Only suggest fixes if Status is NOT 'Regenerated' or Is Legal is False
+                                5. Use the provided valid data (abilities, moves, balls) from the context - these are ACCURATE
+                                6. The 'VALID ABILITIES' section shows ALL abilities the Pokémon can have - trust this list completely
+                                7. Never claim an ability/move is invalid if it's listed in the VALID sections
+                                8. Keep explanations brief and accurate
+                                9. Format your response clearly with proper spacing and line breaks
 
                                 IMPORTANT: Trust the PKHeX legality check - if it says the Pokémon is legal, then it IS legal!";
 
@@ -52,8 +53,9 @@ public class AIService(string apiKey, string model, int maxTokens, double temper
                                 {context}
 
                                 IMPORTANT: Check the legalization status first!
+                                - If 'Legalization Status: Failed', then the set has FAILED LEGALIZATION
                                 - If 'Legalization Status: Regenerated' AND 'Is Legal: True', then the set is ALREADY LEGAL
-                                - Only suggest fixes if the status is NOT Regenerated or Is Legal is False
+                                - Only suggest fixes if the status is 'Failed' or 'Timeout'
 
                                 IF THE SET IS LEGAL (Status: Regenerated, Is Legal: True):
                                 Just respond with:
