@@ -45,10 +45,11 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
         if (!la.Valid)
         {
             context += "Invalid Checks:\n";
+            var localizer = LegalityLocalizationContext.Create(la);
             foreach (var check in la.Results)
             {
                 if (!check.Valid)
-                    context += $"- {check.Comment}\n";
+                    context += $"- {localizer.Humanize(check)}\n";
             }
         }
 

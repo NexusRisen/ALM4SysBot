@@ -86,10 +86,8 @@ public class Gen8SeedFinderPlugin : AutoModPlugin
                 new(6, 6)
             };
 
-            using (var shineBrush = new SolidBrush(Color.FromArgb(80, 255, 255, 255)))
-            {
-                g.FillPolygon(shineBrush, shinePoints);
-            }
+            using var shineBrush = new SolidBrush(Color.FromArgb(80, 255, 255, 255));
+            g.FillPolygon(shineBrush, shinePoints);
         }
         return bmp;
     }
