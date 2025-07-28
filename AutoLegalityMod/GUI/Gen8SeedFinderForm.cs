@@ -23,7 +23,7 @@ public partial class Gen8SeedFinderForm : Form
     private List<EncounterWrapper> _cachedEncounters = [];
     private EncounterSource _availableSources;
     private List<ComboItem> _allSpecies = [];
-    private readonly object _resultsLock = new();
+    private readonly Lock _resultsLock = new();
 
     /// <summary>
     /// Flags for different encounter sources in Generation 8.
