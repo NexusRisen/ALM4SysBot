@@ -68,18 +68,8 @@ public partial class AIAnalysisForm : Form
             if (template.Regen.TryGetBatchValue(".Version", out var versionStr) && int.TryParse(versionStr, out var version))
                 targetVersion = (GameVersion)version;
 
-            string legalityReport = "";
-            if (almres.Status != LegalizationResult.Regenerated)
-            {
-                legalityReport = template.SetAnalysis(_sav, pk);
-            }
-            else if (!la.Valid)
-            {
-                legalityReport = la.Report();
-            }
-
             var timeInfo = $"Generation time: {timer.Elapsed.TotalSeconds:F2} seconds";
-            var context = _contextBuilder.BuildContext(template, almres, la, legalityReport, timeInfo, targetVersion);
+            var context = _contextBuilder.BuildContext(template, almres, la, timeInfo, targetVersion);
             var aiResponse = await _aiService.AnalyzeShowdownSetAsync(input, context, _analysisCts.Token);
             DisplayFormattedResponse(aiResponse, la.Valid, almres.Status);
         }
@@ -193,9 +183,9 @@ public partial class AIAnalysisForm : Form
             if (markerIndex == -1) continue;
 
             var startIndex = markerIndex + marker.Length;
-            var remainingText = aiResponse.Substring(startIndex).Trim();
+            var remainingText = aiResponse[startIndex..].Trim();
 
-            var lines = remainingText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = remainingText.Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
             var setLines = new System.Collections.Generic.List<string>();
             bool inSet = false;
 

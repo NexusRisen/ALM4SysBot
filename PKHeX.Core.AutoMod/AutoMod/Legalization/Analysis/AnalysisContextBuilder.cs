@@ -9,7 +9,7 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
 {
     private readonly SaveFile _sav = sav;
 
-    public string BuildContext(RegenTemplate template, AsyncLegalizationResult pk, LegalityAnalysis la, string legalityReport, string timeInfo, GameVersion targetVersion)
+    public string BuildContext(RegenTemplate template, AsyncLegalizationResult pk, LegalityAnalysis la, string timeInfo, GameVersion targetVersion)
     {
         var context = $"Game Version: {targetVersion} (Generation {_sav.Generation})\n";
         context += $"Species: {SpeciesName.GetSpeciesName(template.Species, (int)LanguageID.English)}\n";
@@ -37,23 +37,73 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
             context += validData + "\n";
         }
 
-        if (!string.IsNullOrWhiteSpace(legalityReport))
+        // Use PKHeX's new localized formatting system for better legality reports
+        if (!la.Valid || pk.Status != LegalizationResult.Regenerated)
         {
-            context += $"Legality Analysis:\n{legalityReport}\n\n";
-        }
-
-        if (!la.Valid)
-        {
-            context += "Invalid Checks:\n";
-            var localizer = LegalityLocalizationContext.Create(la);
-            foreach (var check in la.Results)
+            var formattedReport = GetFormattedLegalityReport(la, verbose: true);
+            if (!string.IsNullOrWhiteSpace(formattedReport))
             {
-                if (!check.Valid)
-                    context += $"- {localizer.Humanize(check)}\n";
+                context += "== LEGALITY REPORT ==\n";
+                context += formattedReport + "\n\n";
+            }
+
+            // Add detailed move analysis
+            var moveAnalysis = LegalityReportHelper.GetDetailedMoveAnalysis(la);
+            if (!string.IsNullOrWhiteSpace(moveAnalysis))
+            {
+                context += "== MOVE DETAILS ==\n";
+                context += moveAnalysis + "\n";
+            }
+
+            // Add detailed ribbon analysis
+            var ribbonAnalysis = LegalityReportHelper.GetDetailedRibbonAnalysis(la);
+            if (!string.IsNullOrWhiteSpace(ribbonAnalysis))
+            {
+                context += "== RIBBON DETAILS ==\n";
+                context += ribbonAnalysis + "\n";
+            }
+
+            // Add invalid checks summary
+            var invalidSummary = LegalityReportHelper.GetInvalidChecksSummary(la);
+            if (!string.IsNullOrWhiteSpace(invalidSummary))
+            {
+                context += "== ISSUES BREAKDOWN ==\n";
+                context += invalidSummary + "\n";
             }
         }
 
+        // Add encounter details using PKHeX's encounter formatting
+        if (la.EncounterMatch is not EncounterInvalid)
+        {
+            context += "== ENCOUNTER DETAILS ==\n";
+            context += GetFormattedEncounterInfo(la) + "\n";
+        }
+
         return context;
+    }
+
+    private static string GetFormattedLegalityReport(LegalityAnalysis la, bool verbose = false)
+    {
+        var localizationSet = LegalityLocalizationSet.GetLocalization(GameLanguage.DefaultLanguage);
+        var context = LegalityLocalizationContext.Create(la, localizationSet);
+
+        var formatter = new BaseLegalityFormatter();
+        return verbose ? formatter.GetReportVerbose(context) : formatter.GetReport(context);
+    }
+
+    private static string GetFormattedEncounterInfo(LegalityAnalysis la)
+    {
+        var sb = new StringBuilder();
+        var localizationSet = LegalityLocalizationSet.GetLocalization(GameLanguage.DefaultLanguage);
+        var context = LegalityLocalizationContext.Create(la, localizationSet);
+
+        var lines = new System.Collections.Generic.List<string>();
+        LegalityFormatting.AddEncounterInfo(context, lines);
+
+        foreach (var line in lines)
+            sb.AppendLine(line);
+
+        return sb.ToString();
     }
 
     private string GetValidDataForSpecies(RegenTemplate template, GameVersion targetVersion)
@@ -98,7 +148,7 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
     {
         sb.AppendLine("GAME AVAILABILITY:");
         var availableGames = PokemonDataHelper.GetAvailableGames(species, form);
-        if (availableGames.Any())
+        if (availableGames.Count != 0)
         {
             sb.AppendLine($"- Available in: {string.Join(", ", availableGames)}");
             if (!availableGames.Contains(version.ToString()))
@@ -193,7 +243,7 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
     {
         sb.AppendLine("\nMOVE VALIDATION:");
         var movelist = GameInfo.Strings.movelist;
-        var minRequiredLevel = template.Level;
+        _ = template.Level;
 
         for (int i = 0; i < template.Moves.Length; i++)
         {
