@@ -1,3 +1,7 @@
+![GitHub Release](https://img.shields.io/github/v/release/hexbyt3/Alm4sysbot)
+![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/hexbyt3/ALM4SysBot/total?color=violet)
+
+
 # AutoLegalityMod
 
 A specialized ALM fork for [PokeBot](https://github.com/hexbyt3/PokeBot) (SysBot.NET) - dedicated to legalizing Pokémon within the trade bot ecosystem.

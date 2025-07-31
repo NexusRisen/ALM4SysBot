@@ -21,7 +21,7 @@ public static class TestUtil
                 return;
 
             EncounterEvent.RefreshMGDB([]);
-            RibbonStrings.ResetDictionary(GameInfo.Strings.ribbons);
+            // RibbonStrings initialization is now handled internally by PKHeX
             Legalizer.EnableEasterEggs = false;
             APILegality.SetAllLegalRibbons = false;
             APILegality.Timeout = 99999;

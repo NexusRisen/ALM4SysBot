@@ -20,7 +20,7 @@ public static class ShowdownEdits
         if (la.Valid)
             return;
 
-        var genderMismatch = la.Results.Any(z => z.Comment == LegalityCheckStrings.LPIDGenderMismatch);
+        var genderMismatch = la.Results.Any(z => z.Result == LegalityCheckResultCode.PIDGenderMismatch);
         if (genderMismatch)
             pk.Gender = pk.Gender == 0 ? (byte)1 : (byte)0;
 
@@ -201,7 +201,7 @@ public static class ShowdownEdits
         if (pk.Format < 3 && newnick.Length == 0)
             newnick = SpeciesName.GetSpeciesName(pk.Species, (int)finallang);
         var nickname = newnick.Length > maxlen ? newnick[..maxlen] : newnick;
-        if (!WordFilter.IsFiltered(nickname, out _,pk.Context) && newnick != SpeciesName.GetSpeciesName(pk.Species,(int)finallang))
+        if (!WordFilter.IsFiltered(nickname, pk.Context, out _, out _) && newnick != SpeciesName.GetSpeciesName(pk.Species, (int)finallang))
             pk.SetNickname(nickname);
         else
             pk.ClearNickname();
