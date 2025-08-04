@@ -66,12 +66,15 @@ public static class LegalityReportHelper
         var localizationSet = LegalityLocalizationSet.GetLocalization(GameLanguage.DefaultLanguage);
         var context = LegalityLocalizationContext.Create(la, localizationSet);
 
-        // Get ribbon verification message
-        var ribbonMessage = context.GetRibbonMessage();
-        if (!string.IsNullOrWhiteSpace(ribbonMessage))
+        // Get ribbon verification messages from the analysis results
+        var ribbonResults = la.Results.Where(r => r.Identifier == CheckIdentifier.Ribbon);
+        foreach (var result in ribbonResults)
         {
-            sb.AppendLine("RIBBON ANALYSIS:");
-            sb.AppendLine(ribbonMessage);
+            if (!result.Valid)
+            {
+                sb.AppendLine("RIBBON ANALYSIS:");
+                sb.AppendLine(context.Humanize(result));
+            }
         }
 
         // List all ribbons the Pokémon has
