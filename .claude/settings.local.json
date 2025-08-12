@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" log --oneline -n 10)",
+      "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" show --stat 6c9d1f339)",
+      "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" diff 1972fc900..6c9d1f339 --name-only)",
+      "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" diff 1972fc900..6c9d1f339 -- \"PKHeX.Core/Saves/Util/SaveUtil.cs\")",
+      "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" diff 1972fc900..6c9d1f339 -- \"PKHeX.Core/Saves/Util/SaveFileType.cs\")",
+      "Bash(copy:*)",
+      "Bash(cp:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": []
+  }
+}

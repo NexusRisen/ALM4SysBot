@@ -86,8 +86,10 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         if (!checkBox2.Checked || !Remote.Bot.Connected)
             return;
 
-        if (slot is not SlotInfoBox(var box, var slotpkm))
+        if (slot is not SlotInfoBox slotInfo)
             return;
+        var box = slotInfo.Box;
+        var slotpkm = slotInfo.Slot;
 
         if (!type.IsContentChange())
             return;
