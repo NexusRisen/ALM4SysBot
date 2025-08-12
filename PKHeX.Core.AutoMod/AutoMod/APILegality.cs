@@ -610,7 +610,6 @@ public static class APILegality
         IOverworldCorrelation8 o when o.GetRequirement(pk) == OverworldCorrelation8Requirement.MustHave => true,
         IStaticCorrelation8b s when s.GetRequirement(pk) == StaticCorrelation8bRequirement.MustHave => true,
         EncounterSlot3 when pk.Species == (ushort)Species.Unown => true,
-        EncounterEgg8b => true,
         EncounterGift3 when pk.Species == (ushort)Species.Jirachi => true, //PKHeX handles this now for both Wishmkr and CHANNEL
         _ => false,
     };
@@ -918,7 +917,18 @@ public static class APILegality
 
         if (enc.Generation is not (3 or 4))
         {
-            pk.SetIVs(set.IVs);
+            // For BDSP and unspecified IVs (all zeros), set perfect IVs for competitive standards
+            if (enc is EncounterEgg8b or EncounterSlot8b && set.IVs.All(iv => iv == 0))
+            {
+                Span<int> perfectIVs = stackalloc int[6];
+                perfectIVs.Fill(31);
+                pk.SetIVs(perfectIVs);
+            }
+            else
+            {
+                pk.SetIVs(set.IVs);
+            }
+            
             if (pk is not IAwakened)
                 return;
 
