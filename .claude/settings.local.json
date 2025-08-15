@@ -10,7 +10,11 @@
       "Bash(cp:*)",
       "Bash(dotnet build:*)",
       "Bash(dotnet clean:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(csc:*)",
+      "Bash(test_egg.exe)"
     ],
     "deny": []
   }

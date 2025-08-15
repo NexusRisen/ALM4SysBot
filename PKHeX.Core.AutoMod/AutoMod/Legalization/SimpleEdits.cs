@@ -779,7 +779,7 @@ public static class SimpleEdits
     {
         // Don't process if Game is LGPE and requested PKM is not Kanto / Meltan / Melmetal
         // Don't process if Game is SWSH and requested PKM is not from the Galar Dex (Zukan8.DexLookup)
-        if (GameVersion.GG.Contains(destVer))
+        if (destVer is GameVersion.GP or GameVersion.GE)
             return species is <= 151 or 808 or 809;
 
         if (GameVersion.SWSH.Contains(destVer))
