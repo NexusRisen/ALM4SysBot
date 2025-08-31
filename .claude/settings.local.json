@@ -1,4 +1,6 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "includeCoAuthoredBy": false,
   "permissions": {
     "allow": [
       "Bash(git -C \"C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\" log --oneline -n 10)",
@@ -14,7 +16,11 @@
       "Bash(dotnet test:*)",
       "Bash(dotnet run:*)",
       "Bash(csc:*)",
-      "Bash(test_egg.exe)"
+      "Bash(test_egg.exe)",
+      "Read(C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE/**)",
+      "Read(C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\\PKHeX.Core\\Editing\\BattleTemplate\\Showdown/**)",
+      "Read(C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\\PKHeX.Core\\Editing\\BattleTemplate\\Showdown/**)",
+      "Read(C:\\Users\\Brand\\source\\repos\\PKHeX-ALL-IN-ONE\\PKHeX.Core\\Editing\\BattleTemplate\\Showdown/**)"
     ],
     "deny": []
   }

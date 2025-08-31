@@ -20,7 +20,7 @@ public static class RegenUtil
 
         for (int i = 0; i < lines.Count;)
         {
-            if (lines[i].Type != BattleTemplateParseErrorType.TokenFailParse)
+            if (lines[i].Type != BattleTemplateParseErrorType.TokenFailParse && lines[i].Type != BattleTemplateParseErrorType.TokenUnknown)
             {
                 i++;
                 continue;
