@@ -70,7 +70,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         var fields = type.GetTypeInfo().DeclaredFields;
         var test = fields.First(z => z.Name == "EditEnv");
         x = (SaveDataEditor<PictureBox>)(test.GetValue(sav) ?? new Exception("Error with LiveHeXUI init."));
-        x.Slots.Publisher.Subscribers.Add(this);
+        x.Slots.Publisher.Subscribe(this);
 
         CenterToParent();
     }
@@ -366,7 +366,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         if (Remote.Bot.Connected)
             Remote.Bot.com.Disconnect();
 
-        x.Slots.Publisher.Subscribers.Remove(this);
+        x.Slots.Publisher.Unsubscribe(this);
         _settings.LatestIP = TB_IP.Text;
         // Only save the port if using USB-Botbase
         if (_settings.USBBotBasePreferred)

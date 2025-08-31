@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
-    <Version>25.06.10</Version>
+    <Version>25.08.30</Version>
     <LangVersion>13</LangVersion>
     <Nullable>enable</Nullable>
     <NeutralLanguage>en</NeutralLanguage>
