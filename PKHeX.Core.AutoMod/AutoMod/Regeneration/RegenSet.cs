@@ -51,7 +51,7 @@ public sealed class RegenSet
             Batch = new StringInstructionSet(modified.ToArray().AsSpan());
     }
 
-    public RegenSet(IList<string> lines, byte format, Shiny shiny = Shiny.Never)
+    public RegenSet(IList<BattleTemplateParseError> lines, byte format, Shiny shiny = Shiny.Never)
     {
         Extra = new RegenSetting { ShinyType = shiny };
         HasExtraSettings = Extra.SetRegenSettings(lines);
@@ -74,48 +74,44 @@ public sealed class RegenSet
         for (int i = 0; i < lines.Count;)
         {
             var line = lines[i];
-            if (line.Contains("Unknown Ability")) // remove non-uniform parsing error messages
+            if (line.Type == BattleTemplateParseErrorType.LineLength && line.Value.Length != 0)
             {
-                lines.RemoveAt(i);
-                continue; 
-            }
-            var sanitized = line.Replace(">=", "≥").Replace("<=", "≤").Replace("Unknown Token: ", "");
-            // Set MetDate to YYYYMMDD format
-            if (sanitized.StartsWith(".MetDate=") && sanitized.Length > 9)
-            {
-                var dateValue = sanitized[9..];
-                if (DateTime.TryParse(dateValue, out var date))
-                    sanitized = $".MetDate={date:yyyyMMdd}";
-            }
-            if (StringInstruction.TryParseInstruction(sanitized, out var mod))
-            {
-                mods.Add(mod);
-                lines.RemoveAt(i);
+                i++;
                 continue;
             }
+            if (line.Type == BattleTemplateParseErrorType.TokenUnknown)
+            {
+                var sanitized = line.Value.Replace(">=", "≥").Replace("<=", "≤");
+                if (StringInstruction.TryParseInstruction(sanitized, out var mod))
+                {
+                    mods.Add(mod);
+                    lines.RemoveAt(i);
+                    continue;
+                }
 
-            if (RegenUtil.IsEncounterFilter(sanitized, out var e))
-            {
-                eFilter.Add(e);
-                lines.RemoveAt(i);
-                continue;
-            }
-            if (RegenUtil.IsVersionFilter(sanitized, out var v))
-            {
-                vFilter.Add(v);
-                lines.RemoveAt(i);
-                continue;
-            }
-            if (RegenUtil.IsSeedFilter(sanitized,out var s))
-            {
-                sFilter.Add(s);
-                lines.RemoveAt(i);
-                continue;
-            }
-            if (line == string.Empty)
-            {
-                lines.RemoveAt(i);
-                continue;
+                if (RegenUtil.IsEncounterFilter(sanitized, out var e))
+                {
+                    eFilter.Add(e);
+                    lines.RemoveAt(i);
+                    continue;
+                }
+                if (RegenUtil.IsVersionFilter(sanitized, out var v))
+                {
+                    vFilter.Add(v);
+                    lines.RemoveAt(i);
+                    continue;
+                }
+                if (RegenUtil.IsSeedFilter(sanitized, out var s))
+                {
+                    sFilter.Add(s);
+                    lines.RemoveAt(i);
+                    continue;
+                }
+                if (line.Value == string.Empty)
+                {
+                    lines.RemoveAt(i);
+                    continue;
+                }
             }
             i++;
         }
@@ -143,7 +139,7 @@ public sealed class RegenSet
         if (VersionFilters.Any())
             sb.AppendLine(RegenUtil.GetSummary(VersionFilters));
 
-        if(SeedFilters.Any())
+        if (SeedFilters.Any())
             sb.AppendLine(SeedFilters[0]);
 
         return sb.ToString();

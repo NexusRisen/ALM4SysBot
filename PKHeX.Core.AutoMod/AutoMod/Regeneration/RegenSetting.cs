@@ -13,13 +13,13 @@ public sealed class RegenSetting
 
     public bool IsShiny => ShinyType != Shiny.Never;
 
-    public bool SetRegenSettings(IList<string> lines)
+    public bool SetRegenSettings(IList<BattleTemplateParseError> lines)
     {
         bool any = false;
 
         for (int i = 0; i < lines.Count;)
         {
-            if (RegenUtil.TrySplit(lines[i], out var split))
+            if (RegenUtil.TrySplit(lines[i].Value, out var split))
             {
                 var key = split.Key;
                 var value = split.Value;

@@ -66,17 +66,6 @@ public sealed class RegenTemplate : IBattleTemplate
         this.SanitizeBattleMoves();
         this.SanitizeTeraTypes();
 
-        if (SimpleEdits.GetMightyRaidGender(set.Species, set.Form).HasValue &&
-            set.Level == 100 &&
-            !set.InvalidLines.Any(line => line.Value.Contains("RibbonMarkMightiest")))
-        {
-            // Check for Tera Cavern location or other indicators
-            if (set.InvalidLines.Any(line => line.Value.Contains("MetLocation=30024") || line.Value.Contains("Scale=128")))
-            {
-                set.InvalidLines.Add(new BattleTemplateParseError(BattleTemplateParseErrorType.TokenUnknown, ".RibbonMarkMightiest=true"));
-            }
-        }
-
         var shiny = Shiny ? Core.Shiny.Always : Core.Shiny.Never;
         if (set.InvalidLines.Count == 0)
         {
@@ -84,8 +73,7 @@ public sealed class RegenTemplate : IBattleTemplate
             return;
         }
 
-        var invalidLineStrings = set.InvalidLines.Select(line => line.Value).ToList();
-        Regen = new RegenSet(invalidLineStrings, gen, shiny);
+        Regen = new RegenSet(set.InvalidLines, gen, shiny);
         Shiny = Regen.Extra.IsShiny;
         if (Ability == -1)
             Ability = RegenUtil.GetRegenAbility(set.Species, gen, Regen.Extra.Ability);

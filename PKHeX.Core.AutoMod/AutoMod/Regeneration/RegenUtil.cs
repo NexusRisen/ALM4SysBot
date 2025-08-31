@@ -10,7 +10,7 @@ public static class RegenUtil
     /// <summary>
     /// Ingests lines from <see cref="lines"/> and removes any that were consumed.
     /// </summary>
-    public static bool GetTrainerInfo(IList<string> lines, byte format, out ITrainerInfo tr)
+    public static bool GetTrainerInfo(IList<BattleTemplateParseError> lines, byte format, out ITrainerInfo tr)
     {
         var sti = new SimpleTrainerInfo { Generation = format };
 
@@ -20,7 +20,12 @@ public static class RegenUtil
 
         for (int i = 0; i < lines.Count;)
         {
-            if (!TrySplit(lines[i], out var split))
+            if (lines[i].Type != BattleTemplateParseErrorType.TokenFailParse)
+            {
+                i++;
+                continue;
+            }
+            if (!TrySplit(lines[i].Value, out var split))
             {
                 i++;
                 continue;
@@ -94,7 +99,7 @@ public static class RegenUtil
         if (!line[2..].StartsWith("Seed="))
             return false;
         var replaced = line[7..];
-        result = "0x"+replaced.ToString();
+        result = "0x" + replaced.ToString();
         return replaced != string.Empty;
     }
     public static bool TrySplit(ReadOnlySpan<char> line, out (string Key, string Value) result)
@@ -103,8 +108,6 @@ public static class RegenUtil
         var index = line.IndexOf(Splitter);
         if (index < 0)
             return false;
-        if (line.ToString().Contains("Unknown")) // handle non-uniform invalid line initial strings
-            line = line[(index+2)..]; // remove "Unknown Token: " from invalid lines to process
         index = line.IndexOf(Splitter);
         if (index < 0)
             return false;
