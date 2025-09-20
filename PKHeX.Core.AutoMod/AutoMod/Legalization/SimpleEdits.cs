@@ -1020,13 +1020,13 @@ public static class SimpleEdits
         Species.Blastoise => 0,      // Male only
         Species.Pikachu => 0,        // Male only
         Species.Mewtwo => 2,         // Genderless (always)
-        Species.Eevee => 0,          // Male only
+        Species.Eevee => 1,          // Female only
         Species.Dragonite => 0,      // Male only
 
         // Gen 2
         Species.Meganium => 1,       // Female only
         Species.Typhlosion when form == 0 => 0,  // Male only (Johtonian)
-        Species.Typhlosion when form == 1 => 1,  // Female only (Hisuian)
+        Species.Typhlosion when form == 1 => 0,  // Male only (Hisuian)
         Species.Feraligatr => 0,     // Male only
         Species.Porygon2 => 2,       // Genderless (always)
         Species.Tyranitar => 0,      // Male only
