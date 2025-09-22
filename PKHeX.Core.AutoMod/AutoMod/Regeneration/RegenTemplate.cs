@@ -129,11 +129,15 @@ public sealed class RegenTemplate : IBattleTemplate
 
         // Add non-Showdown content
         if (hasRegen)
-            sb.AppendLine(regen.Trim());
+            sb.Append(regen.TrimEnd());
 
         // Add Moves
         if (group.Length > 1)
+        {
+            if (hasRegen)
+                sb.AppendLine(); // Add newline between regen and moves
             sb.AppendJoin(Environment.NewLine, group[1]).AppendLine(); // Moves
+        }
 
         return sb.ToString();
     }
