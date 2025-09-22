@@ -18,7 +18,7 @@ public static class ShowdownSetGenningTests
         var dev = APILegality.EnableDevMode;
         APILegality.EnableDevMode = true;
 
-        var sav = SaveUtil.GetBlankSAV(game, "ALM");
+        var sav = BlankSaveFile.Get(game, "ALM");
         TrainerSettings.Register(sav);
 
         var trainer = TrainerSettings.GetSavedTrainerData(game.GetGeneration(), game);
