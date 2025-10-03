@@ -929,6 +929,8 @@ public static class SimpleEdits
         [(int)Species.Garchomp] = [(new(2025, 05, 22), new(2025, 05, 25)), (new(2025, 05, 30), new(2025, 06, 01))], // Garchomp
         [(int)Species.Baxcalibur] = [(new(2025, 06, 19), new(2025, 06, 22)), (new(2025, 06, 27), new(2025, 06, 29))], // Baxcalibur
         [(int)Species.Kommoo] = [(new(2025, 07, 11), new(2025, 07, 13)), (new(2025, 07, 18), new(2025, 07, 20))], // Kommo-o
+        [(int)Species.IronValiant] = [(new(2025, 10, 03), new(2025, 10, 12))], // Iron Valiant
+        [(int)Species.RoaringMoon] = [(new(2025, 10, 03), new(2025, 10, 12))], // Roaring Moon
     };
 
     /// <summary>
@@ -1074,6 +1076,8 @@ public static class SimpleEdits
         Species.Baxcalibur => 0,     // Male only
         Species.IronBundle => 2,     // Genderless (always)
         Species.Kommoo => 0,         // Male only
+        Species.IronValiant => 2,    // Genderless
+        Species.RoaringMoon => 2,    // Genderless
 
         _ => null
     };
