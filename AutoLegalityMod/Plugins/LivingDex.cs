@@ -77,6 +77,7 @@ public class LivingDex : AutoModPlugin
                 lastCount = ModLogic.TrackingCount;
                 t.Count = lastCount;
             }
+            Thread.Sleep(50); // Add a small delay to avoid tight looping
         }
     }
     private static int IngestToBoxes(SaveFile sav, IEnumerable<PKM> list, IList<PKM> extra, int slot = 0)
