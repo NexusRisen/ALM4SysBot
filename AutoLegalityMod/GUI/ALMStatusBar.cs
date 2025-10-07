@@ -22,8 +22,25 @@ namespace AutoModPlugins.GUI
             set
             {
                 _count = value;
-                pb_status.Value = Math.Min(_count, pb_status.Maximum);
-                L_status.Text = $"{_count}/{_maxTasks} completed";
+                if (InvokeRequired)
+                {
+                    Invoke(() =>
+                    {
+                        if (!IsDisposed && !Disposing)
+                        {
+                            pb_status.Value = Math.Min(_count, pb_status.Maximum);
+                            L_status.Text = $"{_count}/{_maxTasks} completed";
+                        }
+                    });
+                }
+                else
+                {
+                    if (!IsDisposed && !Disposing)
+                    {
+                        pb_status.Value = Math.Min(_count, pb_status.Maximum);
+                        L_status.Text = $"{_count}/{_maxTasks} completed";
+                    }
+                }
             }
         }
 

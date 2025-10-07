@@ -33,7 +33,7 @@ public static class TransferDexTests
 
     private static GenerateResult SingleSaveTest(this GameVersion s, LivingDexConfig cfg)
     {
-        var sav = SaveUtil.GetBlankSAV(s, "ALMUT");
+        var sav = BlankSaveFile.Get(s, "ALMUT");
         RecentTrainerCache.SetRecentTrainer(sav);
 
         var expected = sav.GetExpectedDexCount(cfg);
@@ -80,7 +80,7 @@ public static class TransferDexTests
     {
         Dictionary<ushort, List<byte>> speciesDict = [];
         var personal = sav.Personal;
-        var destpersonal = SaveUtil.GetBlankSAV(cfg.TransferVersion, "ALM");
+        var destpersonal = BlankSaveFile.Get(cfg.TransferVersion, "ALM");
         var species = Enumerable.Range(1, sav.MaxSpeciesID).Select(x => (ushort)x);
         foreach (ushort s in species)
         {
