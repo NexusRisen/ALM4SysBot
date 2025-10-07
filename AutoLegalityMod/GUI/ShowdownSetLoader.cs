@@ -248,6 +248,14 @@ public static class ShowdownSetLoader
         APILegality.RandTypes = settings.RandomTypes;
         Legalizer.EnableEasterEggs = settings.EnableEasterEggs;
         SmogonGenner.PromptForImport = settings.PromptForSmogonImport;
+        ModLogic.Config = new LivingDexConfig
+        {
+            IncludeForms = settings.IncludeForms,
+            SetShiny = settings.SetShiny,
+            SetAlpha = settings.SetAlpha,
+            NativeOnly = settings.NativeOnly,
+            TransferVersion = settings.TransferVersion,
+        };
 
         if (APILegality.UseCompetitiveMarkings)
             MarkingApplicator.MarkingMethod = APILegality.CompetitiveMarking;
