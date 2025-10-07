@@ -1,0 +1,81 @@
+Egg (Chespin) (F)
+Ability: Bulletproof
+Bashful Nature
+IVs: 29 HP / 24 Def / 18 Spe
+Ball: Poke Ball
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=X
+- Tackle
+- Growl
+
+Egg (Fennekin) (M)
+Ability: Magician
+Lonely Nature
+IVs: 26 Def / 20 SpA / 6 Spe
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=Y
+- Scratch
+- Tail Whip
+
+Egg (Froakie) (F)
+Ability: Protean
+Lonely Nature
+IVs: 30 HP / 25 SpA / 14 SpD
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=OR
+- Pound
+- Growl
+
+Egg (Treecko) (F)
+Ability: Unburden
+Mild Nature
+IVs: 25 Atk / 6 Def / 21 Spe
+Ball: Poke Ball
+Shiny: Yes
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=AS
+- Pound
+- Leer
+
+Egg (Torchic) (M)
+Ability: Speed Boost
+Bold Nature
+IVs: 20 HP / 10 Atk / 2 Spe
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=ORAS
+- Scratch
+- Growl
+
+Egg (Mudkip) (M)
+Ability: Damp
+Calm Nature
+IVs: 6 HP / 6 Atk / 27 SpA
+Ball: Poke Ball
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=XY
+- Tackle
+- Growl

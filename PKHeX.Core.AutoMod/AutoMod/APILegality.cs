@@ -1617,179 +1617,64 @@ public static class APILegality
     public static PKM GenerateEgg(this ITrainerInfo dest, IBattleTemplate set, out LegalizationResult result)
     {
         result = LegalizationResult.Failed;
-        var template = EntityBlank.GetBlank(dest.Generation);
+        var template = EntityBlank.GetBlank(dest);
         template.ApplySetDetails(set);
-        var destVer = dest.Version;
-        if (destVer <= 0 && dest is SaveFile s)
-            destVer = s.Version;
         if (dest.Generation <= 2)
-            template.EXP = 0;
+            template.EXP = 0; // no relearn moves in gen 1/2 so pass level 1 to generator
         var encounters = GetAllEncounters(template, dest, template.Moves, dest.Version);
         encounters = encounters.Where(z => z.IsEgg);
-        if (!encounters.Any())
+
+        var peek = new PeekEnumerator<IEncounterable>(encounters);
+        if (!peek.PeekIsNext())
         {
             result = LegalizationResult.Failed;
             return template;
         }
         var mutations = EncounterMutationUtil.GetSuggested(dest.Context, set.Level);
         var criteria = EncounterCriteria.GetCriteria(set, template.PersonalInfo, mutations);
-        Span<ushort> relearn = stackalloc ushort[4];
-        foreach (var enc in encounters)
+        while (peek.MoveNext())
         {
+            var enc = peek.Current;
             criteria = SetSpecialCriteria(criteria, enc, set);
 
-            // Get the appropriate trainer - use RegenTemplate trainer if available
-            var tr = dest;
-            if (set is RegenTemplate regen && APILegality.AllowTrainerOverride && regen.Regen.HasTrainerSettings && regen.Regen.Trainer != null)
-            {
-                tr = regen.Regen.Trainer;
-            }
-
             // Create the PKM from the template.
-            var raw = enc.GetPokemonFromEncounter(tr, criteria, set);
-
-            // Set egg nickname (using exact same logic as EggTrade)
-            raw.IsNicknamed = true;
-            raw.Nickname = raw.Language switch
-            {
-                1 => "タマゴ",
-                3 => "Œuf",
-                4 => "Uovo",
-                5 => "Ei",
-                7 => "Huevo",
-                8 => "알",
-                9 or 10 => "蛋",
-                _ => "Egg",
-            };
-
-            // Core egg properties
+            var raw = enc.GetPokemonFromEncounter(dest, criteria, set);
             raw.IsEgg = true;
+            raw.CurrentFriendship = (byte)EggStateLegality.GetMinimumEggHatchCycles(raw);
 
-            // Set locations based on game type
-            raw.EggLocation = raw switch
+            // if egg wasn't originally obtained by OT => Link Trade, else => None
+            if (raw.Format >= 4)
             {
-                PB8 => 60010,
-                PK9 => 30023,
-                _ => 60002,
-            };
-
-            // Set dates
-            var metDate = DateOnly.FromDateTime(DateTime.Now);
-
-            // Check if MetDate is specified in batch settings
-            if (set is RegenTemplate rt && rt.Regen.TryGetBatchValue("MetDate", out var dateStr) &&
-                DateOnly.TryParseExact(dateStr, "yyyyMMdd", out var parsed))
-            {
-                metDate = parsed;
+                var sav = dest;
+                bool isTraded = sav.OT != raw.OriginalTrainerName || sav.TID16 != raw.TID16 || sav.SID16 != raw.SID16;
+                var loc = isTraded
+                    ? Locations.TradedEggLocation(sav.Generation, sav.Version)
+                    : LocationEdits.GetNoneLocation(raw);
+                raw.MetLocation = loc;
             }
-
-            raw.MetDate = metDate;
-            raw.EggMetDate = raw.MetDate;
-
-            // Basic properties
-            raw.HeldItem = 0;
-            raw.CurrentLevel = 1;
-            raw.EXP = 0;
-            raw.MetLevel = 1;
-
-            // Set MetLocation (unhatched)
-            raw.MetLocation = raw switch
+            else if (raw is PK3)
             {
-                PB8 => 65535,
-                PK9 => 0,
-                PK3 => 0,
-                _ => 30002,
-            };
-
-            if (raw is PK3)
-            {
-                raw.Language = (int)LanguageID.Japanese; // japanese
+                raw.Language = (int)LanguageID.Japanese; // japanese;
             }
+            if (raw is PB8)
+                raw.NicknameTrash.Clear();
+            raw.IsNicknamed = EggStateLegality.IsNicknameFlagSet(raw);
+            raw.Nickname = SpeciesName.GetEggName(raw.Language, raw.Format);
 
-            // Set suggested ball
+            // Wipe met date
+            if (raw.Format >= 5)
+                raw.MetDate = null;
+
+            // Wipe egg memories
+            if (raw.Format >= 6)
+                raw.ClearMemories();
+
+            if (raw is PK9) // Eggs in S/V have a Version value of 0 until hatched.
+                raw.Version = 0;
+
             var requestedBall = set is RegenTemplate regenSet ? regenSet.Regen.Extra.Ball : Ball.None;
             raw.SetSuggestedBall(enc, SetMatchingBalls, ForceSpecifiedBall, requestedBall);
 
-            // Special handling for PB8 nickname trash
-            if (raw is PB8)
-                raw.NicknameTrash.Clear();
-
-            // Clear trainer data
-            raw.CurrentHandler = 0;
-            raw.HandlingTrainerName = "";
-            ClearHandlingTrainerTrash(raw);
-            raw.HandlingTrainerFriendship = 0;
-            raw.ClearMemories();
-
-            // Clear battle stats
-            raw.StatNature = raw.Nature;
-            raw.SetEVs([0, 0, 0, 0, 0, 0]);
-
-            // Handle PID/EC relationship
-            if (raw.Format >= 6 && raw.PID == raw.EncryptionConstant)
-            {
-                raw.EncryptionConstant = raw.PID ^ 0x80000000;
-            }
-
-            // Clear markings and ribbons
-            MarkingApplicator.SetMarkings(raw);
-            RibbonApplicator.RemoveAllValidRibbons(raw);
-
-            // Handle game-specific properties
-            if (raw is PK8 pk8)
-            {
-                pk8.HandlingTrainerLanguage = 0;
-                pk8.HandlingTrainerGender = 0;
-                pk8.HandlingTrainerMemory = 0;
-                pk8.HandlingTrainerMemoryFeeling = 0;
-                pk8.HandlingTrainerMemoryIntensity = 0;
-                pk8.DynamaxLevel = 0;
-            }
-            else if (raw is PB8 pb8)
-            {
-                pb8.HandlingTrainerLanguage = 0;
-                pb8.HandlingTrainerGender = 0;
-                pb8.HandlingTrainerMemory = 0;
-                pb8.HandlingTrainerMemoryFeeling = 0;
-                pb8.HandlingTrainerMemoryIntensity = 0;
-                pb8.DynamaxLevel = 0;
-            }
-            else if (raw is PK9 pk9)
-            {
-                pk9.HandlingTrainerLanguage = 0;
-                pk9.HandlingTrainerGender = 0;
-                pk9.HandlingTrainerMemory = 0;
-                pk9.HandlingTrainerMemoryFeeling = 0;
-                pk9.HandlingTrainerMemoryIntensity = 0;
-                pk9.ObedienceLevel = 1;
-                pk9.Version = 0;
-                pk9.BattleVersion = 0;
-                pk9.TeraTypeOverride = (MoveType)19;
-            }
-
-            // Set moves and relearn moves
-            raw.RefreshChecksum();
-            var la = new LegalityAnalysis(raw);
-            var encMatch = la.EncounterMatch;
-
-            // Set egg moves
-            la.GetSuggestedRelearnMoves(relearn, encMatch);
-            raw.SetRelearnMoves(relearn);
-
-            // Clear tech records
-            if (raw is ITechRecord t)
-                t.ClearRecordFlags();
-
-            // Set level-up moves appropriate for level 1
-            raw.SetSuggestedMoves();
-            raw.Move1_PPUps = raw.Move2_PPUps = raw.Move3_PPUps = raw.Move4_PPUps = 0;
-            raw.SetMaximumPPCurrent(raw.Moves);
-            raw.MaximizeFriendship(); // Hatch Egg Faster
-
-            // Final checksum refresh
-            raw.RefreshChecksum();
-
-            // Validate the egg
             if (new LegalityAnalysis(raw).Valid)
             {
                 result = LegalizationResult.Regenerated;

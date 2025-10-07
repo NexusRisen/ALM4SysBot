@@ -1,0 +1,59 @@
+EGG (Bulbasaur) (M)
+Level: 5
+Shiny: Yes
+OT: ALM
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Tackle
+- Growl
+
+EGG (Charmander) (M)
+Level: 5
+IVs: 5 HP / 14 Atk / 3 Def / 9 SpA / 9 SpD / 2 Spe
+OT: ALM
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Scratch
+- Growl
+
+EGG (Squirtle) (F)
+Level: 5
+OT: ALM
+Shiny: Yes
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Tackle
+- Tail Whip
+
+EGG (Chikorita) (F)
+Level: 5
+IVs: 10 HP / 12 Def / 0 SpA / 0 SpD / 3 Spe
+OT: ALM
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Tackle
+- Growl
+
+EGG (Cyndaquil) (M)
+Level: 5
+OT: ALM
+Shiny: Yes
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Tackle
+- Leer
+
+EGG (Totodile) (F)
+Level: 5
+IVs: 14 HP / 3 Def / 6 SpA / 6 SpD / 9 Spe
+OT: ALM
+OTGender: Male
+TID: 12345
+~=Version=GSC
+- Scratch
+- Leer

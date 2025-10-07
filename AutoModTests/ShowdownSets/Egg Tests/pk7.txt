@@ -1,0 +1,54 @@
+Egg (Rowlet) (F)
+Ability: Long Reach
+Naughty Nature
+IVs: 7 HP / 0 Def / 10 SpD
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SN
+- Tackle
+- Leafage
+
+Egg (Litten) (F)
+Ability: Blaze
+Relaxed Nature
+IVs: 18 Atk / 5 Def / 24 SpD
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=MN
+- Scratch
+- Ember
+
+Egg (Popplio) (F)
+Ability: Liquid Voice
+Hardy Nature
+IVs: 4 HP / 2 Def / 26 SpD
+Ball: Poke Ball
+Shiny: Yes
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=US
+- Pound
+- Water Gun
+
+Egg (Pikipek) (M)
+Ability: Skill Link
+Bold Nature
+IVs: 13 Def
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=UM
+- Peck

@@ -1,0 +1,84 @@
+タマゴ (Treecko) (M)
+Ability: Overgrow
+Sassy Nature
+IVs: 21 Atk / 9 SpA / 1 Spe
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=S
+- Pound
+- Leer
+
+タマゴ (Torchic) (F)
+Ability: Blaze
+Level: 5
+Rash Nature
+IVs: 1 HP / 16 Atk / 20 SpA
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=R
+- Scratch
+- Growl
+
+タマゴ (Mudkip) (M)
+Ability: Torrent
+Level: 5
+Relaxed Nature
+IVs: 27 HP / 18 Atk
+Ball: Poke Ball
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=E
+- Tackle
+- Growl
+
+タマゴ (Bulbasaur) (F)
+Ability: Overgrow
+Level: 5
+Timid Nature
+IVs: 1 HP / 22 Atk / 9 SpD
+Ball: Poke Ball
+Shiny: Yes
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=FR
+- Tackle
+- Growl
+
+タマゴ (Charmander) (M)
+Ability: Blaze
+Rash Nature
+IVs: 4 Atk / 23 Def / 21 SpA
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=LG
+- Scratch
+- Growl
+
+タマゴ (Squirtle) (F)
+Ability: Torrent
+Level: 5
+IVs: 2 Atk / 28 SpA
+Ball: Poke Ball
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=FRLG
+- Tackle
+- Tail Whip
