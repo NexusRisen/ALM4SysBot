@@ -1,0 +1,53 @@
+Egg (Snivy) (M)
+Ability: Overgrow
+Timid Nature
+IVs: 21 Atk / 5 SpA / 2 SpD
+Ball: Poke Ball
+OT: ALM
+OTGender: Female
+TID: 44510
+SID: 61374
+~=Version=W
+- Tackle
+
+Egg (Tepig) (M)
+Ability: Blaze
+Level: 1
+Bashful Nature
+IVs: 27 HP / 11 Def / 23 SpA
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Female
+TID: 44510
+SID: 61374
+~=Version=B
+- Tackle
+
+Egg (Oshawott) (M)
+Ability: Torrent
+Level: 1
+Naughty Nature
+IVs: 8 HP / 17 SpA / 16 Spe
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Female
+TID: 44510
+SID: 61374
+~=Version=W2
+- Tackle
+
+Egg (Patrat) (F)
+Ability: Analytic
+Level: 1
+Quiet Nature
+IVs: 0 HP / 27 Def / 2 Spe
+Ball: Poke Ball
+Shiny: Yes
+OT: ALM
+OTGender: Female
+TID: 44510
+SID: 61374
+~=Version=B2
+- Tackle

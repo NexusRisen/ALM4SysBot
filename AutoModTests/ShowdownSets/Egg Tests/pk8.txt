@@ -1,0 +1,42 @@
+Egg (Grookey) (M)
+Ability: Grassy Surge
+Lax Nature
+IVs: 6 Atk / 21 SpA / 3 SpD
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Male
+TID: 250974
+SID: 4022
+~=Version=SW
+- Scratch
+- Growl
+
+Egg (Scorbunny) (M)
+Ability: Libero
+Docile Nature
+IVs: 3 Atk / 19 SpA / 19 Spe
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Male
+TID: 250974
+SID: 4022
+~=Version=SH
+- Tackle
+- Growl
+
+Egg (Sobble) (F)
+Ability: Torrent
+Dynamax Level: 0
+Brave Nature
+IVs: 27 Atk / 7 Def / 3 SpA
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Male
+TID: 250974
+SID: 4022
+~=Version=SWSH
+- Pound
+- Growl

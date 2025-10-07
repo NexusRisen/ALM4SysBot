@@ -1,0 +1,49 @@
+Egg (Sprigatito) (M)
+Ability: Protean
+Tera Type: Grass
+Jolly Nature
+IVs: 11 Atk / 1 SpA / 25 Spe
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SL
+- Scratch
+- Tail Whip
+- Leafage
+
+Egg (Fuecoco) (F)
+Ability: Unaware
+Tera Type: Fire
+Timid Nature
+IVs: 6 Atk / 27 SpD / 21 Spe
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=VL
+- Tackle
+- Leer
+- Ember
+
+Egg (Quaxly) (M)
+Ability: Moxie
+Level: 1
+Friendship: 1
+Tera Type: Water
+Gentle Nature
+IVs: 22 Atk / 25 Def / 24 SpA
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SV
+- Pound
+- Growl
+- Water Gun

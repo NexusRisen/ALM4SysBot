@@ -1,0 +1,82 @@
+Egg (Turtwig) (M)
+Ability: Overgrow
+Docile Nature
+IVs: 20 Atk / 30 SpD / 20 Spe
+Ball: Poke Ball
+Shiny: Yes
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=D
+- Tackle
+
+Egg (Chimchar) (F)
+Ability: Blaze
+Relaxed Nature
+IVs: 5 Atk / 13 Def / 23 Spe
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=P
+- Scratch
+- Leer
+
+Egg (Piplup) (M)
+Ability: Torrent
+Timid Nature
+IVs: 26 HP / 24 Def / 21 SpA
+Ball: Poke Ball
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=Pt
+- Pound
+
+Egg (Chikorita) (M)
+Ability: Overgrow
+Bold Nature
+IVs: 14 SpA / 7 SpD / 19 Spe
+Ball: Poke Ball
+Shiny: No
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=HG
+- Tackle
+- Growl
+
+Egg (Cyndaquil) (M)
+Ability: Blaze
+Level: 1
+Friendship: 0
+Calm Nature
+IVs: 19 Atk / 21 SpA / 18 SpD
+Ball: Poke Ball
+Shiny: Star
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=SS
+- Tackle
+- Leer
+
+Egg (Totodile) (M)
+Ability: Torrent
+Rash Nature
+IVs: 28 Atk / 13 SpD
+Ball: Poke Ball
+Shiny: Square
+OT: ALM
+OTGender: Male
+TID: 44510
+SID: 61374
+~=Version=HGSS
+- Scratch
+- Leer
