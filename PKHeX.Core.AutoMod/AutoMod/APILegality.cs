@@ -1706,6 +1706,10 @@ public static class APILegality
                 raw.Language = (int)LanguageID.Japanese; // japanese
             }
 
+            // Set suggested ball
+            var requestedBall = set is RegenTemplate regenSet ? regenSet.Regen.Extra.Ball : Ball.None;
+            raw.SetSuggestedBall(enc, SetMatchingBalls, ForceSpecifiedBall, requestedBall);
+
             // Special handling for PB8 nickname trash
             if (raw is PB8)
                 raw.NicknameTrash.Clear();
