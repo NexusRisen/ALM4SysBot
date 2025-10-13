@@ -18,14 +18,14 @@ public static class Gen9RaidSeedGenerator
     /// Attempts to generate a Tera Raid Pokémon from a RegenTemplate
     /// </summary>
     /// <param name="regen">The RegenTemplate to generate from</param>
-    /// <param name="sav">The save file (must be Gen 9)</param>
+    /// <param name="tr">The trainer info (must be Gen 9)</param>
     /// <param name="timeoutSeconds">Timeout in seconds (default: 15 seconds, 0 = no timeout)</param>
     /// <param name="maxAttempts">Maximum number of seeds to check (default: 150 million)</param>
     /// <returns>A legal PK9 if found, otherwise null</returns>
-    public static PK9? TryGenerateFromShowdownSet(RegenTemplate regen, SaveFile sav, int timeoutSeconds = 15, int maxAttempts = 150_000_000)
+    public static PK9? TryGenerateFromShowdownSet(RegenTemplate regen, ITrainerInfo tr, int timeoutSeconds = 15, int maxAttempts = 150_000_000)
     {
-        // Validate this is a Gen 9 save
-        if (sav is not SAV9SV sv)
+        // Validate this is Gen 9
+        if (tr.Generation != 9)
             return null;
 
         // Check if this is a Tera Raid request (MetLocation = 30024)
@@ -44,7 +44,7 @@ public static class Gen9RaidSeedGenerator
 
         // Step 2: Get matching encounters for this species
         // For level 75, we need to check both 5★ and 6★ raids
-        var encounters = GetRaidEncountersForLevel(regen.Species, regen.Form, metLevel, sv.Version);
+        var encounters = GetRaidEncountersForLevel(regen.Species, regen.Form, metLevel, tr.Version);
         if (encounters.Count == 0)
         {
             Debug.WriteLine($"[Gen9RaidSeedGenerator] No encounters found for {regen.Species} at level {metLevel}");
@@ -63,7 +63,7 @@ public static class Gen9RaidSeedGenerator
         var timer = Stopwatch.StartNew();
         using var cts = timeoutSeconds > 0 ? new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)) : new CancellationTokenSource();
 
-        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, sv, maxAttempts, cts.Token);
+        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, tr, maxAttempts, cts.Token);
         timer.Stop();
 
         if (result != null)
@@ -256,7 +256,7 @@ public static class Gen9RaidSeedGenerator
         List<ITeraRaid9> encounters,
         EncounterCriteria criteria,
         IVRange[] ivRanges,
-        SAV9SV sav,
+        ITrainerInfo tr,
         int maxAttempts,
         CancellationToken cancellationToken)
     {
@@ -312,13 +312,13 @@ public static class Gen9RaidSeedGenerator
                         // OPTIMIZATION 1: Early shiny check (saves ~94% for shiny-only searches)
                         if (criteria.Shiny == Shiny.Always || criteria.Shiny == Shiny.AlwaysSquare || criteria.Shiny == Shiny.AlwaysStar)
                         {
-                            if (!WillBeShiny(seed, encounter, sav.ID32))
+                            if (!WillBeShiny(seed, encounter, tr.ID32))
                                 continue;
                             Interlocked.Increment(ref shinyPassedCount);
                         }
                         else if (criteria.Shiny == Shiny.Never)
                         {
-                            if (WillBeShiny(seed, encounter, sav.ID32))
+                            if (WillBeShiny(seed, encounter, tr.ID32))
                                 continue;
                         }
 
@@ -328,7 +328,7 @@ public static class Gen9RaidSeedGenerator
                         Interlocked.Increment(ref ivPatternPassedCount);
 
                         // Generate the full Pokémon
-                        var pk = GenerateRaidPokemon(encounter, seed, criteria, sav);
+                        var pk = GenerateRaidPokemon(encounter, seed, criteria, tr);
                         if (pk == null)
                             continue;
                         Interlocked.Increment(ref generatedCount);
@@ -462,7 +462,7 @@ public static class Gen9RaidSeedGenerator
     /// <summary>
     /// Generates a Pokémon from an encounter and seed using PKHeX's raid generation
     /// </summary>
-    private static PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria, SAV9SV sav)
+    private static PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria, ITrainerInfo tr)
     {
         var pi = PersonalTable.SV[encounter.Species, encounter.Form];
 
@@ -510,7 +510,7 @@ public static class Gen9RaidSeedGenerator
             ivs
         );
 
-        int language = (int)Language.GetSafeLanguage(9, (LanguageID)sav.Language);
+        int language = (int)Language.GetSafeLanguage(9, (LanguageID)tr.Language);
 
         var pk = new PK9
         {
@@ -520,11 +520,11 @@ public static class Gen9RaidSeedGenerator
             MetLocation = Locations.TeraCavern9,
             MetLevel = encounter.LevelMin,
             MetDate = EncounterDate.GetDateSwitch(),
-            Version = sav.Version,
+            Version = tr.Version,
             Ball = (byte)Ball.Poke,
-            ID32 = sav.ID32,
-            OriginalTrainerName = sav.OT,
-            OriginalTrainerGender = sav.Gender,
+            ID32 = tr.ID32,
+            OriginalTrainerName = tr.OT,
+            OriginalTrainerGender = tr.Gender,
             Language = language,
             ObedienceLevel = encounter.LevelMin,
             OriginalTrainerFriendship = pi.BaseFriendship,

@@ -71,13 +71,13 @@ public static class APILegality
         }
 
         // Check if this is a Gen 9 Tera Raid request (MetLocation = 30024)
-        if (set is RegenTemplate regenTemplate && dest is SaveFile { Generation: 9 } sav9)
+        if (set is RegenTemplate regenTemplate && dest.Generation == 9)
         {
             if (regenTemplate.Regen.TryGetBatchValue("MetLocation", out var metLocationStr) &&
                 ushort.TryParse(metLocationStr, out var metLocation) &&
                 metLocation == Locations.TeraCavern9)
             {
-                var raidResult = Gen9RaidSeedGenerator.TryGenerateFromShowdownSet(regenTemplate, sav9, Timeout);
+                var raidResult = Gen9RaidSeedGenerator.TryGenerateFromShowdownSet(regenTemplate, dest, Timeout);
                 if (raidResult != null)
                 {
                     var la = new LegalityAnalysis(raidResult);
