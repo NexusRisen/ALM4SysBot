@@ -70,6 +70,26 @@ public static class APILegality
             // If egg generation failed, continue with normal generation
         }
 
+        // Check if this is a Gen 9 Tera Raid request (MetLocation = 30024)
+        if (set is RegenTemplate regenTemplate && dest is SaveFile { Generation: 9 } sav9)
+        {
+            if (regenTemplate.Regen.TryGetBatchValue("MetLocation", out var metLocationStr) &&
+                ushort.TryParse(metLocationStr, out var metLocation) &&
+                metLocation == Locations.TeraCavern9)
+            {
+                var raidResult = Gen9RaidSeedGenerator.TryGenerateFromShowdownSet(regenTemplate, sav9);
+                if (raidResult != null)
+                {
+                    var la = new LegalityAnalysis(raidResult);
+                    if (la.Valid)
+                    {
+                        satisfied = LegalizationResult.Regenerated;
+                        return raidResult;
+                    }
+                }
+            }
+        }
+
         RegenSet regen;
         if (set is RegenTemplate t)
         {
