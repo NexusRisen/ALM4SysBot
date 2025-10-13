@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using PKHeX.Core;
 using static PKHeX.Core.ShinyUtil;
 
 namespace PKHeX.Core.AutoMod;
