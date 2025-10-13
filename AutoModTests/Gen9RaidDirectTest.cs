@@ -28,44 +28,64 @@ public class Gen9RaidDirectTest
             ("Amoonguss", @"Amoonguss (M)
 Ball: Poké Ball
 Level: 100
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=VL
 IVs: 26 Def
 .MetLocation=30024
-.MetLevel=75
-.Version=50"),
+.MetLevel=75"),
 
             ("Alomomola", @"Alomomola (M)
 Ball: Poké Ball
 Level: 45
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=VL
 IVs: 20 Atk
 .MetLocation=30024
-.MetLevel=45
-.Version=50"),
+.MetLevel=45"),
 
             ("Abomasnow", @"Abomasnow (M)
 Ball: Poké Ball
 Level: 75
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SV
 IVs: 13 SpA
 .MetLocation=30024
-.MetLevel=75
-.Version=50"),
+.MetLevel=75"),
 
-            ("Excadrill Shiny", @"Excadrill (M)
+            ("Gimmighoul Shiny", @"Gimmighoul
 Ball: Poké Ball
 Level: 75
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SV
 Shiny: Yes
-IVs: 13 SpA
+IVs: 25 HP / 28 Atk
 .MetLocation=30024
-.MetLevel=75
-.Version=50"),
+.MetLevel=75"),
 
             ("Espeon Shiny", @"Espeon (M)
 Ball: Poké Ball
 Level: 75
 Shiny: Yes
+OT: ALM
+OTGender: Female
+TID: 250974
+SID: 4022
+~=Version=SV
 IVs: 26 Atk
 .MetLocation=30024
-.MetLevel=75
-.Version=50")
+.MetLevel=75")
         };
 
         var sav = BlankSaveFile.Get(EntityContext.Gen9, "ALMUT") as SAV9SV;
@@ -135,6 +155,46 @@ IVs: 26 Atk
                         _output.WriteLine($"   Nature: {created.Nature}");
                         _output.WriteLine($"   Met Location: {created.MetLocation} (Expected: 30024)");
                         _output.WriteLine($"   Met Level: {created.MetLevel}");
+                        _output.WriteLine($"   OT: {created.OriginalTrainerName}");
+                        _output.WriteLine($"   TID: {created.DisplayTID}");
+                        _output.WriteLine($"   SID: {created.DisplaySID}");
+                        _output.WriteLine($"   OT Gender: {(created.OriginalTrainerGender == 1 ? "Female" : "Male")}");
+
+                        // Verify trainer info matches if specified in showdown set
+                        if (regen.Regen.HasTrainerSettings && regen.Regen.Trainer != null)
+                        {
+                            var expectedTrainer = regen.Regen.Trainer;
+                            if (created.OriginalTrainerName != expectedTrainer.OT)
+                                _output.WriteLine($"   ⚠️ OT mismatch: expected {expectedTrainer.OT}, got {created.OriginalTrainerName}");
+                            else
+                                _output.WriteLine($"   ✅ OT matches expected value");
+
+                            // Calculate display TID/SID for Gen 7+ (Gen 9 uses this format)
+                            int expectedTID = expectedTrainer.TID16;
+                            int expectedSID = expectedTrainer.SID16;
+                            if (expectedTrainer.Generation >= 7)
+                            {
+                                const int mil = 1_000_000;
+                                uint repack = ((uint)expectedSID << 16) + (uint)expectedTID;
+                                expectedTID = (int)(repack % mil);
+                                expectedSID = (int)(repack / mil);
+                            }
+
+                            if (created.DisplayTID != expectedTID)
+                                _output.WriteLine($"   ⚠️ TID mismatch: expected {expectedTID}, got {created.DisplayTID}");
+                            else
+                                _output.WriteLine($"   ✅ TID matches expected value");
+
+                            if (created.DisplaySID != expectedSID)
+                                _output.WriteLine($"   ⚠️ SID mismatch: expected {expectedSID}, got {created.DisplaySID}");
+                            else
+                                _output.WriteLine($"   ✅ SID matches expected value");
+
+                            if (created.OriginalTrainerGender != expectedTrainer.Gender)
+                                _output.WriteLine($"   ⚠️ OT Gender mismatch: expected {expectedTrainer.Gender}, got {created.OriginalTrainerGender}");
+                            else
+                                _output.WriteLine($"   ✅ OT Gender matches expected value");
+                        }
 
                         // Verify IVs match (internal order: HP/Atk/Def/Spe/SpA/SpD)
                         bool ivsMatch = true;

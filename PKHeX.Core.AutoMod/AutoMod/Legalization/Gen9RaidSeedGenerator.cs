@@ -63,7 +63,7 @@ public static class Gen9RaidSeedGenerator
         var timer = Stopwatch.StartNew();
         using var cts = timeoutSeconds > 0 ? new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)) : new CancellationTokenSource();
 
-        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, tr, maxAttempts, cts.Token);
+        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, regen, tr, maxAttempts, cts.Token);
         timer.Stop();
 
         if (result != null)
@@ -256,6 +256,7 @@ public static class Gen9RaidSeedGenerator
         List<ITeraRaid9> encounters,
         EncounterCriteria criteria,
         IVRange[] ivRanges,
+        RegenTemplate regen,
         ITrainerInfo tr,
         int maxAttempts,
         CancellationToken cancellationToken)
@@ -267,6 +268,9 @@ public static class Gen9RaidSeedGenerator
         long generatedCount = 0;
         long lastReportedAt = 0;
         var progressReportInterval = 10_000_000; // Report every 10M seeds
+
+        // Use custom trainer info from showdown set if provided, otherwise use save file trainer info
+        var trainerInfo = regen.Regen.HasTrainerSettings && regen.Regen.Trainer != null ? regen.Regen.Trainer : tr;
 
         // Use parallel processing for speed
         var coreCount = Environment.ProcessorCount;
@@ -312,13 +316,13 @@ public static class Gen9RaidSeedGenerator
                         // OPTIMIZATION 1: Early shiny check (saves ~94% for shiny-only searches)
                         if (criteria.Shiny == Shiny.Always || criteria.Shiny == Shiny.AlwaysSquare || criteria.Shiny == Shiny.AlwaysStar)
                         {
-                            if (!WillBeShiny(seed, encounter, tr.ID32))
+                            if (!WillBeShiny(seed, encounter, trainerInfo.ID32))
                                 continue;
                             Interlocked.Increment(ref shinyPassedCount);
                         }
                         else if (criteria.Shiny == Shiny.Never)
                         {
-                            if (WillBeShiny(seed, encounter, tr.ID32))
+                            if (WillBeShiny(seed, encounter, trainerInfo.ID32))
                                 continue;
                         }
 
@@ -328,7 +332,7 @@ public static class Gen9RaidSeedGenerator
                         Interlocked.Increment(ref ivPatternPassedCount);
 
                         // Generate the full Pokémon
-                        var pk = GenerateRaidPokemon(encounter, seed, criteria, tr);
+                        var pk = GenerateRaidPokemon(encounter, seed, criteria, regen, tr);
                         if (pk == null)
                             continue;
                         Interlocked.Increment(ref generatedCount);
@@ -463,7 +467,7 @@ public static class Gen9RaidSeedGenerator
     /// <summary>
     /// Generates a Pokémon from an encounter and seed using PKHeX's raid generation
     /// </summary>
-    private static PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria, ITrainerInfo tr)
+    private static PK9? GenerateRaidPokemon(ITeraRaid9 encounter, uint seed, EncounterCriteria criteria, RegenTemplate regen, ITrainerInfo tr)
     {
         var pi = PersonalTable.SV[encounter.Species, encounter.Form];
 
@@ -511,7 +515,10 @@ public static class Gen9RaidSeedGenerator
             ivs
         );
 
-        int language = (int)Language.GetSafeLanguage(9, (LanguageID)tr.Language);
+        // Use custom trainer info from showdown set if provided, otherwise use save file trainer info
+        var trainerInfo = regen.Regen.HasTrainerSettings && regen.Regen.Trainer != null ? regen.Regen.Trainer : tr;
+
+        int language = (int)Language.GetSafeLanguage(9, (LanguageID)trainerInfo.Language);
 
         var pk = new PK9
         {
@@ -521,11 +528,11 @@ public static class Gen9RaidSeedGenerator
             MetLocation = Locations.TeraCavern9,
             MetLevel = encounter.LevelMin,
             MetDate = EncounterDate.GetDateSwitch(),
-            Version = tr.Version,
+            Version = trainerInfo.Version,
             Ball = (byte)Ball.Poke,
-            ID32 = tr.ID32,
-            OriginalTrainerName = tr.OT,
-            OriginalTrainerGender = tr.Gender,
+            ID32 = trainerInfo.ID32,
+            OriginalTrainerName = trainerInfo.OT,
+            OriginalTrainerGender = trainerInfo.Gender,
             Language = language,
             ObedienceLevel = encounter.LevelMin,
             OriginalTrainerFriendship = pi.BaseFriendship,
