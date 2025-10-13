@@ -77,7 +77,7 @@ public static class APILegality
                 ushort.TryParse(metLocationStr, out var metLocation) &&
                 metLocation == Locations.TeraCavern9)
             {
-                var raidResult = Gen9RaidSeedGenerator.TryGenerateFromShowdownSet(regenTemplate, sav9);
+                var raidResult = Gen9RaidSeedGenerator.TryGenerateFromShowdownSet(regenTemplate, sav9, Timeout);
                 if (raidResult != null)
                 {
                     var la = new LegalityAnalysis(raidResult);
@@ -87,6 +87,8 @@ public static class APILegality
                         return raidResult;
                     }
                 }
+                // If raid generation returned null, it either timed out or couldn't find a matching seed
+                // Mark as failed so the normal generation path can be attempted
             }
         }
 

@@ -20,9 +20,10 @@ public static class Gen9RaidSeedGenerator
     /// </summary>
     /// <param name="regen">The RegenTemplate to generate from</param>
     /// <param name="sav">The save file (must be Gen 9)</param>
+    /// <param name="timeoutSeconds">Timeout in seconds (default: 15 seconds, 0 = no timeout)</param>
     /// <param name="maxAttempts">Maximum number of seeds to check (default: 150 million)</param>
     /// <returns>A legal PK9 if found, otherwise null</returns>
-    public static PK9? TryGenerateFromShowdownSet(RegenTemplate regen, SaveFile sav, int maxAttempts = 150_000_000)
+    public static PK9? TryGenerateFromShowdownSet(RegenTemplate regen, SaveFile sav, int timeoutSeconds = 15, int maxAttempts = 150_000_000)
     {
         // Validate this is a Gen 9 save
         if (sav is not SAV9SV sv)
@@ -59,9 +60,11 @@ public static class Gen9RaidSeedGenerator
         var criteria = ConvertToCriteria(regen);
         var ivRanges = ConvertIVsToRanges(regen.IVs);
 
-        // Step 4: Search for a valid seed
+        // Step 4: Search for a valid seed with timeout
         var timer = Stopwatch.StartNew();
-        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, sv, maxAttempts);
+        using var cts = timeoutSeconds > 0 ? new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds)) : new CancellationTokenSource();
+
+        var result = SearchForMatchingSeed(encounters, criteria, ivRanges, sv, maxAttempts, cts.Token);
         timer.Stop();
 
         if (result != null)
@@ -70,10 +73,18 @@ public static class Gen9RaidSeedGenerator
             Console.WriteLine($"[Gen9RaidSeedGenerator] ✅ Found valid seed {result.Seed:X8} in {timer.ElapsedMilliseconds}ms after checking {result.AttemptsChecked:N0} seeds");
             return result.Pokemon;
         }
+        else if (cts.IsCancellationRequested && timeoutSeconds > 0)
+        {
+            Debug.WriteLine($"[Gen9RaidSeedGenerator] ⏱️ Timed out after {timer.ElapsedMilliseconds}ms ({timeoutSeconds}s limit)");
+            Console.WriteLine($"[Gen9RaidSeedGenerator] ⏱️ Timed out after {timer.ElapsedMilliseconds}ms ({timeoutSeconds}s limit)");
+            Console.WriteLine($"[Gen9RaidSeedGenerator] 💡 TIP: Increase the timeout setting in ALM settings (currently {timeoutSeconds}s) or adjust your criteria (shiny, IVs, nature, etc.)");
+            return null;
+        }
         else
         {
             Debug.WriteLine($"[Gen9RaidSeedGenerator] ❌ Failed to find valid seed after {maxAttempts:N0} attempts in {timer.ElapsedMilliseconds}ms");
             Console.WriteLine($"[Gen9RaidSeedGenerator] ❌ Failed to find valid seed after {maxAttempts:N0} attempts in {timer.ElapsedMilliseconds}ms");
+            Console.WriteLine($"[Gen9RaidSeedGenerator] 💡 TIP: This seed combination may not exist. Try relaxing your criteria (shiny, IVs, nature, etc.)");
             return null;
         }
     }
@@ -247,7 +258,8 @@ public static class Gen9RaidSeedGenerator
         EncounterCriteria criteria,
         IVRange[] ivRanges,
         SAV9SV sav,
-        int maxAttempts)
+        int maxAttempts,
+        CancellationToken cancellationToken)
     {
         var result = new ConcurrentBag<SeedSearchResult>();
         long attemptsChecked = 0;
@@ -266,7 +278,8 @@ public static class Gen9RaidSeedGenerator
 
         var parallelOptions = new ParallelOptions
         {
-            MaxDegreeOfParallelism = coreCount
+            MaxDegreeOfParallelism = coreCount,
+            CancellationToken = cancellationToken
         };
 
         try
@@ -276,7 +289,7 @@ public static class Gen9RaidSeedGenerator
                 uint chunkStart = (uint)(chunkIndex * chunkSize);
                 uint chunkEnd = Math.Min((uint)maxAttempts - 1, chunkStart + (uint)chunkSize - 1);
 
-                for (uint seed = chunkStart; seed <= chunkEnd && result.IsEmpty; seed++)
+                for (uint seed = chunkStart; seed <= chunkEnd && result.IsEmpty && !cancellationToken.IsCancellationRequested; seed++)
                 {
                     var currentCount = Interlocked.Increment(ref attemptsChecked);
 

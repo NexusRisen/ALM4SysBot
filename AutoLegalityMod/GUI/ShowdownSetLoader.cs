@@ -125,10 +125,40 @@ public static class ShowdownSetLoader
                 analysis = regen.SetAnalysis(sav, legal);
             }
 
+            // Check if this is a Gen 9 Tera Raid request
+            bool isGen9Raid = sav.Generation == 9 &&
+                              regen.Regen.TryGetBatchValue("MetLocation", out var metLoc) &&
+                              ushort.TryParse(metLoc, out var ml) &&
+                              ml == 30024;
+
             var errorstr = msg == LegalizationResult.Failed ? "failed to generate" : "timed out";
-            var invalid_set_error = (analysis == null ? $"Set {errorstr}." : $"Set Invalid: {analysis}")
-                                    + "\n\nRefer to the wiki for more help on generating sets correctly."
-                                    + "\n\nIf you are sure this set is valid, please create an issue on GitHub and upload the error_log.txt file in the issue.";
+            var invalid_set_error = analysis == null ? $"Set {errorstr}." : $"Set Invalid: {analysis}";
+
+            // Add specific guidance for Gen 9 Tera Raids
+            if (isGen9Raid && msg is LegalizationResult.Timeout)
+            {
+                invalid_set_error += "\n\n⏱️ Gen 9 Tera Raid seed generation timed out."
+                    + "\n\n💡 SOLUTIONS:"
+                    + "\n• Increase the timeout in Tools → Auto-Legality Mod → Settings → Legality → Timeout (currently: " + APILegality.Timeout + " seconds)"
+                    + "\n• Relax your criteria (remove shiny requirement, allow more IV flexibility, remove nature requirement)"
+                    + "\n• Some combinations may not exist - verify your request is possible"
+                    + "\n\nFor more help generating Tera Raid Pokémon, refer to the wiki below.";
+            }
+            else if (isGen9Raid && msg is LegalizationResult.Failed)
+            {
+                invalid_set_error += "\n\n❌ Gen 9 Tera Raid generation failed - no matching seed found."
+                    + "\n\n💡 SOLUTIONS:"
+                    + "\n• Relax your criteria (especially shiny + specific IVs/nature combinations)"
+                    + "\n• Verify the Pokémon appears in Tera Raids at the specified level"
+                    + "\n• Check that the form, gender, and ability combination is valid for raids"
+                    + "\n\nFor more help generating Tera Raid Pokémon, refer to the wiki below.";
+            }
+            else
+            {
+                invalid_set_error += "\n\nRefer to the wiki for more help on generating sets correctly."
+                    + "\n\nIf you are sure this set is valid, please create an issue on GitHub and upload the error_log.txt file in the issue.";
+            }
+
             var error = WinFormsUtil.ALMErrorBasic(invalid_set_error);
             error.ShowDialog();
 
@@ -167,9 +197,18 @@ public static class ShowdownSetLoader
         var result = sav.ImportToExisting(sets, BoxData, out var invalid, out var timeout, start, replace);
         if (timeout.Count > 0 || invalid.Count > 0)
         {
-            var errorstr = $"{timeout.Count} set(s) timed out and {invalid.Count} set(s) are invalid."
-                           + "\n\nRefer to the wiki for more help on generating sets correctly."
-                           + "\n\nIf you are sure this set is valid, please create an issue on GitHub and upload the error_log.txt file in the issue.";
+            var errorstr = $"{timeout.Count} set(s) timed out and {invalid.Count} set(s) are invalid.";
+
+            // Check if any timed out sets are Gen 9 Tera Raids
+            if (timeout.Count > 0 && sav.Generation == 9)
+            {
+                errorstr += "\n\n⏱️ If generating Gen 9 Tera Raids:"
+                    + "\n• Increase timeout in Settings → Legality → Timeout (currently: " + APILegality.Timeout + " seconds)"
+                    + "\n• Relax criteria (shiny, IVs, nature) or verify the combination exists";
+            }
+
+            errorstr += "\n\nRefer to the wiki for more help on generating sets correctly."
+                        + "\n\nIf you are sure this set is valid, please create an issue on GitHub and upload the error_log.txt file in the issue.";
 
             var error = WinFormsUtil.ALMErrorBasic(errorstr);
             error.ShowDialog();
