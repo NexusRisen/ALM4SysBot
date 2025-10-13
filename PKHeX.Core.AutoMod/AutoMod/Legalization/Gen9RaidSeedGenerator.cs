@@ -411,7 +411,8 @@ public static class Gen9RaidSeedGenerator
         // If IVs are fully fixed, check compatibility immediately
         if (fixedIVs.IsSpecified)
         {
-            var ivArray = new[] { fixedIVs.HP, fixedIVs.ATK, fixedIVs.DEF, fixedIVs.SPA, fixedIVs.SPD, fixedIVs.SPE };
+            // Reorder to match internal IV order (HP/Atk/Def/Spe/SpA/SpD)
+            var ivArray = new[] { fixedIVs.HP, fixedIVs.ATK, fixedIVs.DEF, fixedIVs.SPE, fixedIVs.SPA, fixedIVs.SPD };
             for (int i = 0; i < 6; i++)
             {
                 if (ivArray[i] != -1)
@@ -600,16 +601,17 @@ public static class Gen9RaidSeedGenerator
     }
 
     /// <summary>
-    /// Checks if the Pokémon's IVs are within the specified ranges
+    /// Checks if the Pokémon's IVs are within the specified ranges.
+    /// Ranges array is in internal order: HP/Atk/Def/Spe/SpA/SpD
     /// </summary>
     private static bool CheckIVRanges(PK9 pk, IVRange[] ranges)
     {
         return pk.IV_HP >= ranges[0].Min && pk.IV_HP <= ranges[0].Max &&
                pk.IV_ATK >= ranges[1].Min && pk.IV_ATK <= ranges[1].Max &&
                pk.IV_DEF >= ranges[2].Min && pk.IV_DEF <= ranges[2].Max &&
-               pk.IV_SPA >= ranges[3].Min && pk.IV_SPA <= ranges[3].Max &&
-               pk.IV_SPD >= ranges[4].Min && pk.IV_SPD <= ranges[4].Max &&
-               pk.IV_SPE >= ranges[5].Min && pk.IV_SPE <= ranges[5].Max;
+               pk.IV_SPE >= ranges[3].Min && pk.IV_SPE <= ranges[3].Max &&
+               pk.IV_SPA >= ranges[4].Min && pk.IV_SPA <= ranges[4].Max &&
+               pk.IV_SPD >= ranges[5].Min && pk.IV_SPD <= ranges[5].Max;
     }
 
     /// <summary>

@@ -97,7 +97,7 @@ IVs: 26 Atk
                 _output.WriteLine($"Species: {(Species)regen.Species}");
                 _output.WriteLine($"Level: {regen.Level}");
                 _output.WriteLine($"Shiny: {regen.Shiny}");
-                _output.WriteLine($"IVs: {regen.IVs[0]}/{regen.IVs[1]}/{regen.IVs[2]}/{regen.IVs[3]}/{regen.IVs[4]}/{regen.IVs[5]}");
+                _output.WriteLine($"IVs (HP/Atk/Def/Spe/SpA/SpD): {regen.IVs[0]}/{regen.IVs[1]}/{regen.IVs[2]}/{regen.IVs[3]}/{regen.IVs[4]}/{regen.IVs[5]}");
 
                 if (regen.Regen.TryGetBatchValue("MetLocation", out var metLoc))
                 {
@@ -129,14 +129,14 @@ IVs: 26 Atk
                         _output.WriteLine($"✅ SUCCESS - {name}");
                         _output.WriteLine($"   EC: {created.EncryptionConstant:X8}");
                         _output.WriteLine($"   PID: {created.PID:X8}");
-                        _output.WriteLine($"   IVs: {created.IV_HP}/{created.IV_ATK}/{created.IV_DEF}/{created.IV_SPA}/{created.IV_SPD}/{created.IV_SPE}");
-                        _output.WriteLine($"   Expected IVs: {regen.IVs[0]}/{regen.IVs[1]}/{regen.IVs[2]}/{regen.IVs[3]}/{regen.IVs[4]}/{regen.IVs[5]}");
+                        _output.WriteLine($"   Created IVs (HP/Atk/Def/SpA/SpD/Spe): {created.IV_HP}/{created.IV_ATK}/{created.IV_DEF}/{created.IV_SPA}/{created.IV_SPD}/{created.IV_SPE}");
+                        _output.WriteLine($"   Expected IVs (HP/Atk/Def/Spe/SpA/SpD): {regen.IVs[0]}/{regen.IVs[1]}/{regen.IVs[2]}/{regen.IVs[3]}/{regen.IVs[4]}/{regen.IVs[5]}");
                         _output.WriteLine($"   Shiny: {created.IsShiny} (Expected: {regen.Shiny})");
                         _output.WriteLine($"   Nature: {created.Nature}");
                         _output.WriteLine($"   Met Location: {created.MetLocation} (Expected: 30024)");
                         _output.WriteLine($"   Met Level: {created.MetLevel}");
 
-                        // Verify IVs match
+                        // Verify IVs match (internal order: HP/Atk/Def/Spe/SpA/SpD)
                         bool ivsMatch = true;
                         for (int i = 0; i < 6; i++)
                         {
@@ -145,9 +145,9 @@ IVs: 26 Atk
                                 0 => created.IV_HP,
                                 1 => created.IV_ATK,
                                 2 => created.IV_DEF,
-                                3 => created.IV_SPA,
-                                4 => created.IV_SPD,
-                                5 => created.IV_SPE,
+                                3 => created.IV_SPE,
+                                4 => created.IV_SPA,
+                                5 => created.IV_SPD,
                                 _ => 0
                             };
                             if (actualIV != regen.IVs[i])
