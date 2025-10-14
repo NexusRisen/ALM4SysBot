@@ -45,6 +45,7 @@ public static class APILegality
     public static bool AllowBatchCommands { get; set; } = true;
     public static bool ForceLevel100for50 { get; set; } = true;
     public static BattleTemplateDisplayStyle ExportFormat { get; set; } = BattleTemplateDisplayStyle.Showdown;
+    public static LanguageID ExportLanguage { get; set; } = LanguageID.English;
     public static MoveType[] RandTypes { get; set; } = [];
     public static int Timeout { get; set; } = 15;
 

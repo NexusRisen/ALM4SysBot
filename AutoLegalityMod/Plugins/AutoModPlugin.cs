@@ -96,6 +96,54 @@ public abstract class AutoModPlugin : IPlugin
         return CheckForMismatch();
     }
 
+    internal static void RefreshExportLanguage(ISaveFileProvider provider)
+    {
+        try
+        {
+            // ReSharper disable once SuspiciousTypeConversion.Global
+            var form = ((ContainerControl)provider).ParentForm;
+            if (form == null)
+                return;
+
+            var mainType = form.GetType();
+            var settingsProperty = mainType.GetProperty("Settings", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static);
+            if (settingsProperty == null)
+                return;
+
+            var settings = settingsProperty.GetValue(null);
+            if (settings == null)
+                return;
+
+            var battleTemplateProperty = settings.GetType().GetProperty("BattleTemplate");
+            if (battleTemplateProperty == null)
+                return;
+
+            var battleTemplate = battleTemplateProperty.GetValue(settings);
+            if (battleTemplate == null)
+                return;
+
+            var exportProperty = battleTemplate.GetType().GetProperty("Export");
+            if (exportProperty == null)
+                return;
+
+            var export = exportProperty.GetValue(battleTemplate);
+            if (export == null)
+                return;
+
+            var languageProperty = export.GetType().GetProperty("Language");
+            if (languageProperty == null)
+                return;
+
+            var language = languageProperty.GetValue(export);
+            if (language is LanguageID lang)
+                APILegality.ExportLanguage = lang;
+        }
+        catch
+        {
+            APILegality.ExportLanguage = LanguageID.English;
+        }
+    }
+
     private async Task TranslateInterface(CancellationToken token)
     {
         // ReSharper disable once SuspiciousTypeConversion.Global

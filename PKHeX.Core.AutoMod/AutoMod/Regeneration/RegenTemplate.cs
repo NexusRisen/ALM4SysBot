@@ -56,7 +56,8 @@ public sealed class RegenTemplate : IBattleTemplate
         DynamaxLevel = set.DynamaxLevel;
         TeraType = set.TeraType;
 
-        ParentLines = set.GetText(APILegality.ExportFormat == BattleTemplateDisplayStyle.Legacy ? BattleTemplateExportSettings.CommunityStandard : BattleTemplateExportSettings.Showdown);
+        var order = APILegality.ExportFormat == BattleTemplateDisplayStyle.Legacy ? BattleTemplateConfig.CommunityStandard : BattleTemplateConfig.Showdown;
+        ParentLines = set.GetText(new BattleTemplateExportSettings(order, APILegality.ExportLanguage));
         SanitizeMoves(set, Moves);
     }
 

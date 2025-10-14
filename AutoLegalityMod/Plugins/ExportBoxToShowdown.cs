@@ -28,11 +28,10 @@ public class ExportBoxToShowdown : AutoModPlugin
     {
         try
         {
+            AutoModPlugin.RefreshExportLanguage(provider);
             var str = provider.GetRegenSetsFromBoxCurrent();
             if (string.IsNullOrWhiteSpace(str))
-            {
                 return;
-            }
 
             Clipboard.SetText(str);
             WinFormsUtil.Alert("Exported the active box in RegenTemplate format to clipboard.");
@@ -47,11 +46,10 @@ public class ExportBoxToShowdown : AutoModPlugin
     {
         try
         {
+            AutoModPlugin.RefreshExportLanguage(SaveFileEditor);
             var str = PKMEditor.PreparePKM().GetRegenText();
             if (string.IsNullOrWhiteSpace(str))
-            {
                 return;
-            }
 
             Clipboard.SetText(str);
             WinFormsUtil.Alert("Exported the active box in RegenTemplate format to clipboard.");
