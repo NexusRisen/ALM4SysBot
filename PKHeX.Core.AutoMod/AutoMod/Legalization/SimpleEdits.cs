@@ -418,6 +418,8 @@ public static class SimpleEdits
     {
         if (enc is { Generation: < 8, Context: not EntityContext.Gen7b } && pk.Format >= 8) // height and weight don't apply prior to GG
             return;
+        if (enc is { Context: EntityContext.Gen9a }) // do not break xoroshiro correlation.
+            return;
 
         if (pk is IScaledSizeValue obj) // Deal with this later -- restrictions on starters/statics/alphas, for now roll with whatever encounter DB provides
         {
@@ -476,12 +478,6 @@ public static class SimpleEdits
             {
                 height = (int)(pk.PID >> 16) % 0xFF;
                 weight = (int)(pk.PID & 0xFFFF) % 0xFF;
-                scale = (int)(pk.PID >> 8) % 0xFF;
-            }
-            else if (pk.ZA)
-            {
-                height = 0;
-                weight = 0;
                 scale = (int)(pk.PID >> 8) % 0xFF;
             }
         }

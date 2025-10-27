@@ -954,6 +954,8 @@ public static class APILegality
             default:
                 break;
         }
+        if (enc.Context is EntityContext.Gen9a)
+            return;
 
         // Handle mismatching abilities due to a PID re-roll
         // Check against ability index because the Pokémon could be a pre-evo at this point
