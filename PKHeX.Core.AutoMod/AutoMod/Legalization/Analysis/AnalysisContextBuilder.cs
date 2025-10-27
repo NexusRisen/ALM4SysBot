@@ -61,7 +61,7 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
             }
 
             // Add detailed move analysis
-            var moveAnalysis = LegalityReportHelper.GetDetailedMoveAnalysis(la);
+            var moveAnalysis = LegalityReportHelper.GetDetailedMoveAnalysis(la, pk.Created);
             if (!string.IsNullOrWhiteSpace(moveAnalysis))
             {
                 context += "== MOVE DETAILS ==\n";
@@ -69,7 +69,7 @@ public sealed class AnalysisContextBuilder(SaveFile sav)
             }
 
             // Add detailed ribbon analysis
-            var ribbonAnalysis = LegalityReportHelper.GetDetailedRibbonAnalysis(la);
+            var ribbonAnalysis = LegalityReportHelper.GetDetailedRibbonAnalysis(la, pk.Created);
             if (!string.IsNullOrWhiteSpace(ribbonAnalysis))
             {
                 context += "== RIBBON DETAILS ==\n";

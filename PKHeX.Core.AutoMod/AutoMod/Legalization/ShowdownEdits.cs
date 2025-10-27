@@ -74,7 +74,7 @@ public static class ShowdownEdits
 
     /// <summary>
     /// Sets the ability of the given <see cref="PKM"/> based on the provided <see cref="IBattleTemplate"/> and <see cref="AbilityPermission"/> preference.
-    /// Handles hidden abilities, ability number selection, and special cases for transferred Pokémon.
+    /// Handles hidden abilities, ability number selection, and special cases for transferred Pokï¿½mon.
     /// </summary>
     /// <param name="pk">The <see cref="PKM"/> to modify.</param>
     /// <param name="set">The <see cref="IBattleTemplate"/> containing the desired ability information.</param>
@@ -273,16 +273,16 @@ public static class ShowdownEdits
     {
         // If no moves are requested, just keep the encounter moves
         if (set.Moves[0] != 0)
-            pk.SetMoves(set.Moves, pk is not PA8);
+            pk.SetMoves(set.Moves, pk is not PA8 and not PA9);
         else
-            pk.SetMoves(pk.Moves, pk is not PA8);
+            pk.SetMoves(pk.Moves, pk is not PA8 and not PA9);
         var la = new LegalityAnalysis(pk);
         // Remove invalid encounter moves (eg. Kyurem Encounter -> Requested Kyurem black)
         if (set.Moves[0] == 0 && la.Info.Moves.Any(z => z.Judgement == Severity.Invalid))
         {
             Span<ushort> moves = stackalloc ushort[4];
             la.GetSuggestedCurrentMoves(moves);
-            pk.SetMoves(moves, pk is not PA8);
+            pk.SetMoves(moves, pk is not PA8 and not PA9);
             pk.FixMoves();
         }
 

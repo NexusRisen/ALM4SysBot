@@ -139,6 +139,10 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
                 dest = s9sv.MyStatus.Data;
                 tdata = LPPointer.GetTrainerDataSV;
                 break;
+            case SAV9ZA s9za:
+                dest = s9za.MyStatus.Data;
+                tdata = LPPointer.GetTrainerDataZA;
+                break;
 
             default:
                 dest = [];
@@ -386,7 +390,12 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
     {
         bool readPointer = (ModifierKeys & Keys.Control) == Keys.Control;
         var txt = TB_Offset.Text;
-        var offset = readPointer && Remote.Bot.com is ICommunicatorNX nx ? Remote.Bot.GetCachedPointer(nx, TB_Pointer.Text) : Util.GetHexValue64(txt);
+        var method = RWMethod.Heap;
+        if (RB_Main.Checked)
+            method = RWMethod.Main;
+        if (RB_Absolute.Checked)
+            method = RWMethod.Absolute;
+        var offset = readPointer && Remote.Bot.com is ICommunicatorNX nx ? nx.GetPointerAddress(TB_Pointer.Text, method == RWMethod.Heap) : Util.GetHexValue64(txt);
         if ((offset.ToString("X16") != txt.ToUpper().PadLeft(16, '0') && !readPointer)|| offset == InjectionUtil.INVALID_PTR)
         {
             WinFormsUtil.Alert("Specified offset is not a valid hex string.");
@@ -394,13 +403,6 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         }
         try
         {
-            var method = RWMethod.Heap;
-            if (RB_Main.Checked)
-                method = RWMethod.Main;
-
-            if (RB_Absolute.Checked)
-                method = RWMethod.Absolute;
-
             var result = Remote.ReadOffset(offset, method);
             if (!result)
                 WinFormsUtil.Alert("No valid data is located at the specified offset.");

@@ -206,14 +206,18 @@ public static class Legalizer
         if (formcount == 0)
             return null;
 
-        if (!(pk.SWSH || pk.BDSP || pk.LA))
+        if (!(pk.SWSH || pk.BDSP || pk.LA || pk.ZA))
             return pk.Form;
 
         static bool IsPresentInGameSWSH(ushort species, byte form) => PersonalTable.SWSH.IsPresentInGame(species, form);
         static bool IsPresentInGameBDSP(ushort species, byte form) => PersonalTable.BDSP.IsPresentInGame(species, form);
         static bool IsPresentInGameLA(ushort species, byte form) => PersonalTable.LA.IsPresentInGame(species, form);
+        static bool IsPresentInGameZA(ushort species, byte form) => PersonalTable.ZA.IsPresentInGame(species, form);
         for (byte f = 0; f < formcount; f++)
         {
+            if (pk.ZA && IsPresentInGameZA(species, f))
+                return f;
+
             if (pk.LA && IsPresentInGameLA(species, f))
                 return f;
 

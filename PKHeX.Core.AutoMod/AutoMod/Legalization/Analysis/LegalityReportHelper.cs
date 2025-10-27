@@ -6,7 +6,7 @@ namespace PKHeX.Core.AutoMod.AutoMod.Legalization.Analysis;
 
 public static class LegalityReportHelper
 {
-    public static string GetDetailedMoveAnalysis(LegalityAnalysis la)
+    public static string GetDetailedMoveAnalysis(LegalityAnalysis la, PKM pk)
     {
         var sb = new StringBuilder();
         var localizationSet = LegalityLocalizationSet.GetLocalization(GameLanguage.DefaultLanguage);
@@ -22,7 +22,7 @@ public static class LegalityReportHelper
             if (!move.IsParsed)
                 continue;
 
-            var moveInfo = context.FormatMove(move, i + 1, la.Entity.Format);
+            var moveInfo = context.FormatMove(move, i + 1, pk.Format);
             sb.AppendLine($"- {moveInfo}");
 
             if (!move.Valid)
@@ -32,7 +32,7 @@ public static class LegalityReportHelper
         }
 
         // Relearn moves for formats that support them
-        if (la.Entity.Format >= 6)
+        if (pk.Format >= 6)
         {
             sb.AppendLine("\nRELEARN MOVES:");
             var relearn = la.Info.Relearn;
@@ -55,10 +55,9 @@ public static class LegalityReportHelper
         return sb.ToString();
     }
 
-    public static string GetDetailedRibbonAnalysis(LegalityAnalysis la)
+    public static string GetDetailedRibbonAnalysis(LegalityAnalysis la, PKM pk)
     {
         var sb = new StringBuilder();
-        var pk = la.Entity;
 
         if (pk is not IRibbonIndex ribbons)
             return string.Empty;

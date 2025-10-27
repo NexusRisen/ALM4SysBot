@@ -10,6 +10,7 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
 {
     public static ReadOnlySpan<LiveHeXVersion> SupportedVersions =>
     [
+        ZA_v101,
         SV_v101,
         SV_v110,
         SV_v120,
@@ -45,6 +46,14 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
 
     private const int LA_MYSTATUS_BLOCK_SIZE = 0x80;
     private const int SV_MYSTATUS_BLOCK_SIZE = 0x68;
+    private const int ZA_MYSTATUS_BLOCK_SIZE = 0x78;
+    public static readonly BlockData[] Blocks_ZA_v101 =
+    [
+        Get(0xE3E89BD1, "[[main+5F0B250]+A0]+40", "MyStatus", "Trainer Data"),
+        Get(0x21C9BD44, "[[main+5F0B250]+D0]+40", "KItem", "Items"),
+        Get(0xF3A8569D, "[[[main+5F0B250]+120]+168]", "KStoredShinyEntity", "Shiny Stash"),
+        Get(0x4F35D0DD, "[[main+5F0B250]+38]+40", "KMoney", "Money", SCTypeCode.UInt32)
+    ];
     public static readonly BlockData[] Blocks_SV_v300 =
     [
         Get(0xE3E89BD1, "[[[main+47350d8]+1C0]+0]+40", "MyStatus", "Trainer Data"),
@@ -157,6 +166,7 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
     // LiveHexVersion -> Blockname -> List of <SCBlock Keys, OffsetValues>
     public static readonly Dictionary<LiveHeXVersion, BlockData[]> SCBlocks = new()
     {
+        {ZA_v101, Blocks_ZA_v101 },
         {SV_v400, Blocks_SV_v300 },
         { SV_v301, Blocks_SV_v300 },
         { SV_v300, Blocks_SV_v300 },
@@ -186,6 +196,7 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
 
     private static string GetB1S1Pointer(LiveHeXVersion lv) => lv switch
     {
+        ZA_v101 => "[[[main+5F0B250]+B0]+978]",
         SV_v300 or SV_v301 or SV_v400 => "[[[[main+47350d8]+1C0]+30]+9D0]",
         SV_v202 => "[[[[main+4623A30]+198]+30]+9D0]",
         SV_v201 => "[[[[main+4622A30]+198]+30]+9D0]",
@@ -203,6 +214,7 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
 
     public static string GetSaveBlockPointer(LiveHeXVersion lv) => lv switch
     {
+        ZA_v101 => "[[main+5F0B1B0]+30]+08",
         SV_v300 or SV_v301 or SV_v400 => "[[[[[main+47350d8]+D8]]]+30]",
         SV_v202 => "[[[[[main+4617648]+D8]]]+30]",
         SV_v201 => "[[[[[main+4616648]+D8]]]+30]",
@@ -345,5 +357,15 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
         var ptr = SCBlocks[lv].First(z => z.Name == "MyStatus").Pointer;
         var ofs = psb.GetCachedPointer(sb, ptr);
         return ofs == 0 ? null : psb.com.ReadBytes(ofs, SV_MYSTATUS_BLOCK_SIZE).ToArray();
+    };
+    public static readonly Func<PokeSysBotMini, byte[]?> GetTrainerDataZA = psb =>
+    {
+        if (psb.com is not ICommunicatorNX sb)
+            return null;
+
+        var lv = psb.Version;
+        var ptr = SCBlocks[lv].First(z => z.Name == "MyStatus").Pointer;
+        var ofs = sb.GetPointerAddress(ptr);
+        return ofs == 0 ? null : psb.com.ReadBytes(ofs, ZA_MYSTATUS_BLOCK_SIZE).ToArray();
     };
 }

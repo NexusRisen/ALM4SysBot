@@ -26,6 +26,8 @@ public abstract class InjectionBase(LiveHeXVersion lv, bool useCache) : PointerC
     private const string Scarlet_ID = "0100A3D008C5C000";
     private const string Violet_ID = "01008F6008C5E000";
 
+    private const string ZA_ID = "0100F43008C44000";
+
     private static readonly Dictionary<string, LiveHeXVersion[]> SupportedTitleVersions = new()
     {
         { LetsGoPikachu_ID, [LGPE_v102] },
@@ -37,6 +39,7 @@ public abstract class InjectionBase(LiveHeXVersion lv, bool useCache) : PointerC
         { LegendsArceus_ID, [LA_v100, LA_v101, LA_v102, LA_v111] },
         { Scarlet_ID, [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301,SV_v400] },
         { Violet_ID,  [SV_v101, SV_v110, SV_v120, SV_v130, SV_v131, SV_v132, SV_v201, SV_v202, SV_v300, SV_v301, SV_v400] },
+        { ZA_ID, [ZA_v101] },
     };
 
     public virtual Dictionary<string, string> SpecialBlocks { get; } = [];
@@ -78,6 +81,7 @@ public abstract class InjectionBase(LiveHeXVersion lv, bool useCache) : PointerC
 
     public static bool SaveCompatibleWithTitle(SaveFile sav, string titleID) => sav switch
     {
+        SAV9ZA when titleID is ZA_ID => true,
         SAV9SV when titleID is Scarlet_ID or Violet_ID => true,
         SAV8LA when titleID is LegendsArceus_ID => true,
         SAV8BS when titleID is BrilliantDiamond_ID or ShiningPearl_ID => true,

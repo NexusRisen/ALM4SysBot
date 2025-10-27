@@ -44,5 +44,7 @@ public enum LiveHeXVersion
     SV_v202 = 31,
     SV_v300 = 32,
     SV_v301 = 33,
-    SV_v400 = 34
+    SV_v400 = 34,
+
+    ZA_v101 = 35,
 }

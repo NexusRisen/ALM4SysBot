@@ -478,6 +478,12 @@ public static class SimpleEdits
                 weight = (int)(pk.PID & 0xFFFF) % 0xFF;
                 scale = (int)(pk.PID >> 8) % 0xFF;
             }
+            else if (pk.ZA)
+            {
+                height = 0;
+                weight = 0;
+                scale = (int)(pk.PID >> 8) % 0xFF;
+            }
         }
         else
         {
@@ -649,6 +655,7 @@ public static class SimpleEdits
         EntityContext.Gen8a => PersonalTable.LA  [species, form].BaseFriendship,
         EntityContext.Gen8b => PersonalTable.BDSP[species, form].BaseFriendship,
         EntityContext.Gen9  => PersonalTable.SV  [species, form].BaseFriendship,
+        EntityContext.Gen9a => PersonalTable.ZA  [species, form].BaseFriendship,
         _ => throw new IndexOutOfRangeException(),
     };
 
@@ -788,6 +795,9 @@ public static class SimpleEdits
         if (GameVersion.PLA.Contains(destVer))
             return PersonalTable.LA.IsPresentInGame(species, form);
 
+        if (destVer is GameVersion.ZA)
+            return PersonalTable.ZA.IsPresentInGame(species, form);
+
         return GameVersion.SV.Contains(destVer) ? PersonalTable.SV.IsPresentInGame(species, form) : (uint)species <= destVer.GetMaxSpeciesID();
     }
 
@@ -828,7 +838,7 @@ public static class SimpleEdits
 
     public static void SetRecordFlags(this PKM pk, ReadOnlySpan<ushort> moves)
     {
-        if (pk is ITechRecord tr and not PA8)
+        if (pk is ITechRecord tr and not PA8 and not PA9)
         {
             if (pk.Species == (ushort)Hydrapple)
             {
@@ -853,6 +863,8 @@ public static class SimpleEdits
 
         if (pk is IMoveShop8Mastery master)
             master.SetMoveShopFlags(pk);
+        if (pk is IPlusRecord pr)
+            pr.SetPlusFlags((PersonalInfo9ZA)pk.PersonalInfo, new LegalityAnalysis(pk), true, true);
     }
 
     public static void SetSuggestedContestStats(this PKM pk, IEncounterTemplate enc)
