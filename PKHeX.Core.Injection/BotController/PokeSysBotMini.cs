@@ -30,8 +30,6 @@ public sealed class PokeSysBotMini(LiveHeXVersion lv, ICommunicator communicator
 
     public void SendBox(ReadOnlySpan<byte> boxData, int box)
     {
-        for (int i = 0; i < SlotCount; i++)
-            SendSlot(boxData.Slice(i * SlotSize, SlotSize), box, i);
         Injector.SendBox(this, boxData, box);
     }
 

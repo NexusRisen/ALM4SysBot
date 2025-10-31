@@ -42,8 +42,14 @@ public sealed class LiveHeXController
 
     public void WriteBox(int box)
     {
-        var boxData = SAV.SAV.GetBoxBinary(box);
-        Bot.SendBox(boxData, box);
+        var sav = SAV.SAV;
+        for (int i = 0; i < sav.BoxSlotCount; i++)
+        {
+            var pkm = sav.GetBoxSlotAtIndex(box, i);
+            sav.AdaptToSaveFile(pkm);
+            var data = RamOffsets.WriteBoxData(Bot.Version) ? pkm.EncryptedBoxData : pkm.EncryptedPartyData;
+            Bot.SendSlot(data, box, i);
+        }
     }
 
     public void WriteActiveSlot(int box, int slot)
