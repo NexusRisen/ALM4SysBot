@@ -123,7 +123,13 @@ public static class APILegality
             gamelist = [GameVersion.R, GameVersion.S];
 
         var mutations = EncounterMutationUtil.GetSuggested(dest.Context, set.Level);
-        var encounters = GetAllEncounters(pk: template, dest, moves: new ReadOnlyMemory<ushort>(set.Moves), gamelist);
+
+        // Allow custom moves for Floette-Eternal gift encounter
+        var movesForMatching = (template.Species == (ushort)Species.Floette && template.Form == 5 && dest.Context >= EntityContext.Gen9a)
+            ? ReadOnlyMemory<ushort>.Empty
+            : new ReadOnlyMemory<ushort>(set.Moves);
+
+        var encounters = GetAllEncounters(pk: template, dest, moves: movesForMatching, gamelist);
         var criteria = EncounterCriteria.GetCriteria(set, template.PersonalInfo, mutations);
         if (regen.EncounterFilters.Any())
             encounters = encounters.Where(enc => BatchEditing.IsFilterMatch(regen.EncounterFilters, enc));

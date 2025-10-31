@@ -256,10 +256,14 @@ public static class ModLogic
         if (blank is { Species: (ushort)Keldeo, Form: 1 })
             blank.Move1 = (ushort)Move.SecretSword;
 
-        if (blank.GetIsFormInvalid(tr.Generation, blank.Form))
+        if (blank.GetIsFormInvalid(tr.Generation, tr.Context, blank.Form))
             return null;
 
         var setText = new ShowdownSet(blank).Text.Split('\r')[0];
+        if (species == (ushort)Zygarde && form == 2)
+            setText += "-C";
+        if (species == (ushort)Zygarde && form == 3)
+            setText += "-50%-C";
         if ((shiny && !SimpleEdits.IsShinyLockedSpeciesForm(species, blank.Form)) || (shiny && tr.Generation != 6 && blank.Species != (ushort)Vivillon && blank.Form != 18))
             setText += Environment.NewLine + "Shiny: Yes";
 
@@ -296,12 +300,12 @@ public static class ModLogic
         return success == LegalizationResult.Regenerated ? pk : null;
     }
 
-    private static bool GetIsFormInvalid(this PKM pk, byte generation, byte form)
+    private static bool GetIsFormInvalid(this PKM pk, byte generation, EntityContext ctx, byte form)
     {
         var species = pk.Species;
         switch ((Species)species)
         {
-            case Floette when form == 5:
+            case Floette when form == 5 && ctx < EntityContext.Gen9a:
             case Shaymin or Furfrou or Hoopa when form != 0 && generation <= 6:
             case Arceus when generation == 4 && form == 9: // ??? form
             case Scatterbug or Spewpa when form == 19:
@@ -475,7 +479,7 @@ public static class ModLogic
             if (rough is { Species: (ushort)Keldeo, Form: 1 })
                 rough.Move1 = (ushort)Move.SecretSword;
 
-            if (GetIsFormInvalid(rough, destGeneration, form))
+            if (GetIsFormInvalid(rough, destGeneration, tr.Context, form))
                 continue;
 
             try
