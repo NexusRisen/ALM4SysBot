@@ -860,7 +860,7 @@ public static class SimpleEdits
         if (pk is IMoveShop8Mastery master)
             master.SetMoveShopFlags(pk);
         if (pk is IPlusRecord pr)
-            pr.SetPlusFlags((PersonalInfo9ZA)pk.PersonalInfo, new LegalityAnalysis(pk), true, true);
+            pr.SetPlusFlags((IPermitPlus)pk.PersonalInfo, new LegalityAnalysis(pk), true, true);
     }
 
     public static void SetSuggestedContestStats(this PKM pk, IEncounterTemplate enc)
