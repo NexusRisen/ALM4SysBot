@@ -48,7 +48,8 @@ public sealed class LiveHeXController
             var pkm = sav.GetBoxSlotAtIndex(box, i);
             sav.AdaptToSaveFile(pkm);
             var data = RamOffsets.WriteBoxData(Bot.Version) ? pkm.EncryptedBoxData : pkm.EncryptedPartyData;
-            Bot.SendSlot(data, box, i);
+            var slotData = PadSlotData(data);
+            Bot.SendSlot(slotData, box, i);
         }
     }
 
@@ -58,7 +59,8 @@ public sealed class LiveHeXController
         pkm.ResetPartyStats();
         SAV.SAV.AdaptToSaveFile(pkm);
         var data = RamOffsets.WriteBoxData(Bot.Version) ? pkm.EncryptedBoxData : pkm.EncryptedPartyData;
-        Bot.SendSlot(data, box, slot);
+        var slotData = PadSlotData(data);
+        Bot.SendSlot(slotData, box, slot);
     }
 
     public void ReadActiveSlot(int box, int slot)
@@ -95,4 +97,15 @@ public sealed class LiveHeXController
     public Span<byte> ReadRAM(ulong offset, int size) => Bot.com.ReadBytes(offset, size);
 
     public void WriteRAM(ulong offset, byte[] data) => Bot.com.WriteBytes(data, offset);
+
+    private ReadOnlySpan<byte> PadSlotData(ReadOnlySpan<byte> data)
+    {
+        var slotSize = Bot.SlotSize;
+        if (data.Length >= slotSize)
+            return data;
+
+        var padded = new byte[slotSize];
+        data.CopyTo(padded);
+        return padded;
+    }
 }
