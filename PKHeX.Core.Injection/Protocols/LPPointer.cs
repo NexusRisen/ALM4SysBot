@@ -52,7 +52,8 @@ public sealed class LPPointer(LiveHeXVersion lv, bool useCache) : InjectionBase(
         Get(0xE3E89BD1, "[[main+5F0B250]+A0]+40", "MyStatus", "Trainer Data"),
         Get(0x21C9BD44, "[[main+5F0B250]+D0]+40", "KItem", "Items"),
         Get(0xF3A8569D, "[[[main+5F0B250]+120]+168]", "KStoredShinyEntity", "Shiny Stash"),
-        Get(0x4F35D0DD, "[[main+5F0B250]+38]+40", "KMoney", "Money", SCTypeCode.UInt32)
+        Get(0x4F35D0DD, "[[main+5F0B250]+38]+40", "KMoney", "Money", SCTypeCode.UInt32),
+        Get(0x2D87BE5C, "[[[main+5F0B250]+68]+40]", "Zukan", "Pokedex")
     ];
     public static readonly BlockData[] Blocks_SV_v300 =
     [
