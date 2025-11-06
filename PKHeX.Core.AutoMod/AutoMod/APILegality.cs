@@ -142,8 +142,10 @@ public static class APILegality
 
         PKM? last = null;
         var timer = Stopwatch.StartNew();
+        var encounterCount = 0;
         foreach (var enc in encounters)
         {
+            encounterCount++;
             // Return out if set times out
             if (timer.Elapsed.TotalSeconds >= Timeout)
             {
@@ -357,7 +359,7 @@ public static class APILegality
         }
         else
         {
-            gamelist = [.. versionlist.OrderByDescending(c => c.GetGeneration())];
+            gamelist = PrioritizeVersion([.. versionlist.OrderByDescending(z => z)], destVer);
         }
 
         if (template.AbilityNumber == 4 && destVer.GetGeneration() < 8)
