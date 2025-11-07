@@ -859,8 +859,16 @@ public static class SimpleEdits
 
         if (pk is IMoveShop8Mastery master)
             master.SetMoveShopFlags(pk);
-        if (pk is IPlusRecord pr)
+        if (pk is PA9 pa9)
+        {
+            var permit = (IPermitPlus)pa9.PersonalInfo;
+            var (_, plus) = LearnSource9ZA.GetLearnsetAndPlus(pa9.Species, pa9.Form);
+            PlusRecordApplicator.SetPlusFlagsEncounter(pa9, permit, plus, pa9.CurrentLevel);
+        }
+        else if (pk is IPlusRecord pr)
+        {
             pr.SetPlusFlags((IPermitPlus)pk.PersonalInfo, new LegalityAnalysis(pk), true, true);
+        }
     }
 
     public static void SetSuggestedContestStats(this PKM pk, IEncounterTemplate enc)

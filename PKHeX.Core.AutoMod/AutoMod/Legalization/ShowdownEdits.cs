@@ -15,6 +15,8 @@ public static class ShowdownEdits
     /// <param name="set">Showdown Set for Gender reference</param>
     public static void FixGender(this PKM pk, IBattleTemplate set)
     {
+        if (pk is PA9)
+            return;
         pk.ApplySetGender(set);
         var la = new LegalityAnalysis(pk);
         if (la.Valid)
@@ -214,6 +216,8 @@ public static class ShowdownEdits
     /// <param name="set">Template to grab the set gender</param>
     private static void ApplySetGender(this PKM pk, IBattleTemplate set)
     {
+        if (pk is PA9)
+            return;
         pk.Gender = set.Gender ?? pk.GetSaneGender();
     }
 
