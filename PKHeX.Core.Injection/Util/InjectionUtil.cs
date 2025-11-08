@@ -62,7 +62,7 @@ public static class InjectionUtil
         var dt = nx.ReadBytesAbsolute(ptr + 8, 16).AsSpan();
         var start = ReadUInt64LittleEndian(dt[..8]);
         var end   = ReadUInt64LittleEndian(dt[8..]);
-        var size = (ulong)GetBlockSizeSV(psb.Version);
+        var size = (ulong)GetBlockSize(psb.Version);
 
         while (start < end)
         {
@@ -80,8 +80,9 @@ public static class InjectionUtil
         return 0;
     }
 
-    private static int GetBlockSizeSV(LiveHeXVersion version) => version switch
+    private static int GetBlockSize(LiveHeXVersion version) => version switch
     {
+        >= LiveHeXVersion.ZA_v101 => 32,
         >= LiveHeXVersion.SV_v130 => 48, // Thanks, santacrab!
         _ => 32,
     };
