@@ -155,7 +155,7 @@ public static class ShowdownEdits
         pk.SetSuggestedFormArgument(enc.Species);
         if (evolutionRequired || formchange || (pk.Ability != set.Ability && set.Ability != -1))
         {
-            var abilitypref = (AbilityPermission)pk.PersonalInfo.GetIndexOfAbility(set.Ability);
+            var abilitypref = set.Ability == -1 ? enc.Ability : (AbilityPermission)pk.PersonalInfo.GetIndexOfAbility(set.Ability);
             SetAbility(pk, set, abilitypref);
         }
         if (pk.CurrentLevel != set.Level)
