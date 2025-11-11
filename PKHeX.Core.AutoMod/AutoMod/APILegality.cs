@@ -345,7 +345,8 @@ public static class APILegality
     internal static GameVersion[] FilteredGameList(PKM template, GameVersion destVer, bool batchEdit, IBattleTemplate set, bool nativeOnly = false)
     {
         // Check for .Version batch command (e.g., .Version=52)
-        if (set is RegenTemplate regen && regen.Regen.TryGetBatchValue(".Version", out var versionStr)
+        // Note: Batch commands are stored without the leading dot
+        if (set is RegenTemplate regen && regen.Regen.TryGetBatchValue("Version", out var versionStr)
             && int.TryParse(versionStr, out var versionInt))
         {
             var requestedVersion = (GameVersion)versionInt;
