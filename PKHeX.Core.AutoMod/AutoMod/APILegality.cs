@@ -344,7 +344,16 @@ public static class APILegality
     /// <returns>List of filtered games to check encounters for</returns>
     internal static GameVersion[] FilteredGameList(PKM template, GameVersion destVer, bool batchEdit, IBattleTemplate set, bool nativeOnly = false)
     {
-        if (batchEdit && set is RegenTemplate { Regen.VersionFilters: { Count: not 0 } x } && TryGetSingleVersion(x, out var single))
+        // Check for .Version batch command (e.g., .Version=52)
+        if (set is RegenTemplate regen && regen.Regen.TryGetBatchValue(".Version", out var versionStr)
+            && int.TryParse(versionStr, out var versionInt))
+        {
+            var requestedVersion = (GameVersion)versionInt;
+            return [requestedVersion];
+        }
+
+        // Check for explicit version filters (e.g., ~=Version=52)
+        if (set is RegenTemplate { Regen.VersionFilters: { Count: not 0 } x } && TryGetSingleVersion(x, out var single))
             return single;
 
         var versionlist = GameUtil.GetVersionsWithinRange(template, template.Generation);
