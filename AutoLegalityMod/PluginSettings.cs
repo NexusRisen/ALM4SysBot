@@ -14,8 +14,6 @@ public class PluginSettings
     private const string Connection = nameof(Connection);
     private const string Customization = nameof(Customization);
     private const string Legality = nameof(Legality);
-    private const string LivingDex = nameof(LivingDex);
-    private const string TransferDex = nameof(TransferDex);
     private const string Miscellaneous = nameof(Miscellaneous);
     private const string Development = nameof(Development);
 
@@ -116,27 +114,6 @@ public class PluginSettings
     [Category(Legality)]
     [Description("Produces an Easter Egg Pokémon if the provided set is illegal.")]
     public bool EnableEasterEggs { get; set; } = false;
-
-    // Living Dex
-    [Category(LivingDex)]
-    [Description("Generate all forms of the Pokémon. Note that some generations may not have enough box space for all forms.")]
-    public bool IncludeForms { get; set; } = false;
-
-    [Category(LivingDex)]
-    [Description("Try to generate the shiny version of the Pokémon if possible.")]
-    public bool SetShiny { get; set; } = false;
-
-    [Category(LivingDex)]
-    [Description("Try to generate the alpha version of the Pokémon if possible.")]
-    public bool SetAlpha { get; set; } = false;
-
-    [Category(LivingDex)]
-    [Description("Only generate Pokémon natively available in the game version pair.")]
-    public bool NativeOnly { get; set; } = true;
-
-    [Category(TransferDex)]
-    [Description("Generate Transfer Living Dex destination game")]
-    public GameVersion TransferVersion { get; set; } = GameVersion.VL;
 
     // Miscellaneous
     [Category(Miscellaneous)]
