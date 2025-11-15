@@ -117,10 +117,6 @@ public class PluginSettings
 
     // Miscellaneous
     [Category(Miscellaneous)]
-    [Description("Used for \"Generate Smogon Sets\". If set to true, ALM will ask for approval for each set before attempting to generate it.")]
-    public bool PromptForSmogonImport { get; set; } = false;
-
-    [Category(Miscellaneous)]
     [Description("Sets markings on the Pokémon based on IVs.")]
     public bool UseMarkings { get; set; } = true;
 

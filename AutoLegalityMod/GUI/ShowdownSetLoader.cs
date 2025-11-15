@@ -247,7 +247,6 @@ public static class ShowdownSetLoader
         APILegality.ExportFormat = settings.ExportFormat;
         APILegality.RandTypes = settings.RandomTypes;
         Legalizer.EnableEasterEggs = settings.EnableEasterEggs;
-        SmogonGenner.PromptForImport = settings.PromptForSmogonImport;
 
         if (APILegality.UseCompetitiveMarkings)
             MarkingApplicator.MarkingMethod = APILegality.CompetitiveMarking;
