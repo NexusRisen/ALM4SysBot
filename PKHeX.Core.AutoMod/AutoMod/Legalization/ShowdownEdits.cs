@@ -42,10 +42,16 @@ public static class ShowdownEdits
         if (pk.Nature == set.Nature || set.Nature == Nature.Random)
             return;
 
-        if (pk is PA9)
-            return;
-
         var val = set.Nature <= Nature.Quirky ? set.Nature : Nature.Hardy;
+
+        // For PA9, use StatNature minting instead of changing Nature (which would break seed validation)
+        if (pk is PA9)
+        {
+            if (pk.Nature != val)
+                pk.StatNature = val;
+            return;
+        }
+
         if (pk.Species == (ushort)Species.Toxtricity)
         {
             if (pk.Form == ToxtricityUtil.GetAmpLowKeyResult(val))
