@@ -919,7 +919,7 @@ public static class SimpleEdits
         // Generation 5
         [(int)Species.Emboar] = [(new(2024, 06, 14), new(2024, 06, 16)), (new(2024, 06, 21), new(2024, 06, 23))], // Emboar
         [(int)Species.Serperior] = [(new(2024, 09, 20), new(2024, 09, 22)), (new(2024, 09, 27), new(2024, 09, 29))], // Serperior
-        [(int)Species.Samurott] = [(new(2023, 03, 31), new(2023, 04, 02)), (new(2023, 04, 07), new(2023, 04, 09))], // Samurott (Hisuian)
+        [(int)Species.Samurott] = [(new(2023, 03, 31), new(2023, 04, 02)), (new(2023, 04, 07), new(2023, 04, 09))], // Samurott
         [(int)Species.Hydreigon] = [(new(2025, 11, 07), new(2025, 11, 09)), (new(2025, 11, 14), new(2025, 11, 16))], // Hydreigon
 
         // Generation 6
