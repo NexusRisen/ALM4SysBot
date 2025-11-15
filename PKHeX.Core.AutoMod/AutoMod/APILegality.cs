@@ -543,6 +543,13 @@ public static class APILegality
                 return false;
         }
 
+        // Don't process if PA9 encounter has fixed nature and set nature doesn't match
+        if (enc is EncounterStatic9a { Nature: not Nature.Random } static9a && set.Nature != Nature.Random)
+        {
+            if (set.Nature != static9a.Nature)
+                return false;
+        }
+
         // Don't process if PKM is definitely Hidden Ability and the PKM is from Gen 3 or Gen 4 and Hidden Capsule doesn't exist
         var gen = enc.Generation;
         if (abilityreq == AbilityRequest.Hidden && gen is 3 or 4 && destVer.GetGeneration() < 8)

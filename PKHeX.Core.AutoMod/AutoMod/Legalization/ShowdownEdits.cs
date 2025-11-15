@@ -42,6 +42,9 @@ public static class ShowdownEdits
         if (pk.Nature == set.Nature || set.Nature == Nature.Random)
             return;
 
+        if (pk is PA9)
+            return;
+
         var val = set.Nature <= Nature.Quirky ? set.Nature : Nature.Hardy;
         if (pk.Species == (ushort)Species.Toxtricity)
         {
@@ -83,6 +86,9 @@ public static class ShowdownEdits
     /// <param name="preference">The <see cref="AbilityPermission"/> indicating the preferred ability slot.</param>
     public static void SetAbility(PKM pk, IBattleTemplate set, AbilityPermission preference)
     {
+        if (pk is PA9)
+            return;
+
         if (pk.Ability != set.Ability)
             pk.RefreshAbility(pk is PK5 { HiddenAbility: true } ? 2 : pk.AbilityNumber >> 1);
         if (pk.Ability != set.Ability && pk.Context >= EntityContext.Gen6 && set.Ability != -1)
