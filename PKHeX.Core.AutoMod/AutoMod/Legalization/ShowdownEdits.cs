@@ -44,8 +44,8 @@ public static class ShowdownEdits
 
         var val = set.Nature <= Nature.Quirky ? set.Nature : Nature.Hardy;
 
-        // For PA9, use StatNature minting instead of changing Nature (which would break seed validation)
-        if (pk is PA9)
+        // For PA9 static/gift encounters, use StatNature minting since nature is RNG-correlated
+        if (pk is PA9 && enc is not EncounterSlot9a)
         {
             if (pk.Nature != val)
                 pk.StatNature = val;

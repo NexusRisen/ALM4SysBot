@@ -13,6 +13,7 @@ public static class ShowdownSetGenningTests
     [InlineData(GameVersion.US, Meowstic)]
     [InlineData(GameVersion.US, Darkrai)]
     [InlineData(GameVersion.B2, Genesect)]
+    [InlineData(GameVersion.ZA, Xerneas)]
     public static void VerifyManually(GameVersion game, string txt)
     {
         var dev = APILegality.EnableDevMode;
@@ -62,4 +63,21 @@ Timid Nature
 - Signal Beam
 - Hidden Power Ground
 - Calm Mind";
+
+    private const string Xerneas =
+        @"Xerneas @ Life Orb
+Ball: Moon Ball
+Level: 75
+Shiny: No
+OT: Benyamin
+TID: 689563
+SID: 3536
+OTGender: Male
+Language: English
+EVs: 6 HP / 252 SpA / 252 Spe
+Modest Nature
+.MetLocation=210
+.MetLevel=75
+.Version=52
+.MetDate=20251030";
 }
