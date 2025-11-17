@@ -302,6 +302,32 @@ public static class ShowdownEdits
             pk.FixMoves();
         }
 
+        // ZA requires all 4 move slots to be filled (moves cannot be deleted)
+        if (pk is PA9 && pk.MoveCount < 4)
+        {
+            la = new LegalityAnalysis(pk);
+            Span<ushort> suggested = stackalloc ushort[4];
+            la.GetSuggestedCurrentMoves(suggested);
+
+            Span<ushort> current = stackalloc ushort[4];
+            pk.GetMoves(current);
+
+            int fillIndex = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                if (current[i] != 0)
+                    continue;
+
+                while (fillIndex < 4 && (suggested[fillIndex] == 0 || current.Contains(suggested[fillIndex])))
+                    fillIndex++;
+
+                if (fillIndex < 4)
+                    current[i] = suggested[fillIndex++];
+            }
+
+            pk.SetMoves(current, Legal.IsPPUpAvailable(pk));
+        }
+
         if (la.Parsed && !pk.FatefulEncounter)
         {
             // For dexnav. Certain encounters come with "random" relearn moves, and our requested moves might require one of them.
