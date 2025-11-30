@@ -1,7 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<Reference Include="PKHeX.Core">
-			<HintPath>..\PKHeX.Core.AutoMod\deps\PKHeX.Core.dll</HintPath>
-		</Reference>
+		<ProjectReference Include="..\..\PKHeXth\PKHeX.Core\PKHeX.Core.csproj" />
 	</ItemGroup>
 </Project>

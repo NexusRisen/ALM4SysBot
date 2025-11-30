@@ -1,12 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
-		<Folder Include="deps\" />
-	</ItemGroup>
-	<ItemGroup>
-		<!-- PKHeX.Core version 25.11.16 (updated 2025-11-16) -->
-		<Reference Include="PKHeX.Core">
-			<HintPath>deps\PKHeX.Core.dll</HintPath>
-		</Reference>
+		<ProjectReference Include="..\..\PKHeXth\PKHeX.Core\PKHeX.Core.csproj" />
 	</ItemGroup>
 </Project>
-	
