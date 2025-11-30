@@ -63,7 +63,7 @@ public partial class LiveHeXUI : Form, ISlotViewer<PictureBox>
         if (BoxSelect is not null)
         {
             BoxSelect.SelectedIndexChanged += ChangeBox;
-            Closing += (_, _) => BoxSelect.SelectedIndexChanged -= ChangeBox;
+            FormClosing += (_, _) => BoxSelect.SelectedIndexChanged -= ChangeBox;
         }
 
         var type = sav.GetType();
